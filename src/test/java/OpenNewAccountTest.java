@@ -56,4 +56,14 @@ public class OpenNewAccountTest extends BaseTest {
                 () -> assertTrue(newAccountId.matches("\\d+"), "Account number should be numeric")
         );
     }
+    @Test
+    @DisplayName("Opening a SAVINGS account shows the confirmation and hides the form")
+    public void openSavingsAccount() {
+        String newAccountId = openAccount("SAVINGS");
+
+        String message = driver.findElement(By.xpath("//div[@id='openAccountResult']/p[1]")).getText();
+        assertEquals("Congratulations, your account is now open.", message);
+        assertFalse(driver.findElement(By.id("openAccountForm")).isDisplayed(), "Form should be hidden after opening");
+        assertNotNull(newAccountId);
+    }
 }
