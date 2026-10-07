@@ -77,4 +77,13 @@ public class OpenNewAccountTest extends BaseTest {
         assertNotNull(accountLink);
         assertEquals(newAccountId, accountLink.getText());
     }
+    @Test
+    @DisplayName("The new account number links to that account's details page")
+    public void newAccountLinkOpensAccountDetails() {
+        String newAccountId = openAccount("CHECKING");
+
+        driver.findElement(By.xpath("//a[@id='newAccountId']")).click();
+        wait.until(ExpectedConditions.urlContains("activity.htm?id=" + newAccountId));
+        assertTrue(driver.getCurrentUrl().contains("id=" + newAccountId));
+    }
 }
