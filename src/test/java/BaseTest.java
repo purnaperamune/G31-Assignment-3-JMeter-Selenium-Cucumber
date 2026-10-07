@@ -27,9 +27,6 @@ public class BaseTest {
         driver.findElement(By.name("password")).sendKeys(password);
         driver.findElement(By.cssSelector("input[value='Log In']")).click();
     }
-
-    // Registers a brand-new user and leaves them logged in.
-    // ParaBank's demo data gets reset, so tests create their own user instead of relying on an old one.
     protected String registerNewUser() {
         String username = "user" + System.currentTimeMillis();
 

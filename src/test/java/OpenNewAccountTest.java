@@ -66,4 +66,15 @@ public class OpenNewAccountTest extends BaseTest {
         assertFalse(driver.findElement(By.id("openAccountForm")).isDisplayed(), "Form should be hidden after opening");
         assertNotNull(newAccountId);
     }
+    @Test
+    @DisplayName("A newly opened account appears in Accounts Overview")
+    public void newAccountAppearsInAccountsOverview() {
+        String newAccountId = openAccount("SAVINGS");
+
+        driver.findElement(By.partialLinkText("Accounts Overview")).click();
+        WebElement accountLink = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.linkText(newAccountId)));
+        assertNotNull(accountLink);
+        assertEquals(newAccountId, accountLink.getText());
+    }
 }
