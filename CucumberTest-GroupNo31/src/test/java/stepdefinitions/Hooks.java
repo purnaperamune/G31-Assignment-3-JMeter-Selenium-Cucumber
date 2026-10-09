@@ -19,9 +19,9 @@ public class Hooks {
 
         ChromeOptions options = new ChromeOptions();
 
-        // Disable Chrome password manager
         Map<String, Object> prefs = new HashMap<>();
 
+        // Disable password manager
         prefs.put(
                 "credentials_enable_service",
                 false
@@ -37,20 +37,40 @@ public class Hooks {
                 false
         );
 
+        // Disable address/autofill saving popup
+        prefs.put(
+                "autofill.profile_enabled",
+                false
+        );
+
+        prefs.put(
+                "autofill.credit_card_enabled",
+                false
+        );
+
+        // Disable browser notifications
+        prefs.put(
+                "profile.default_content_setting_values.notifications",
+                2
+        );
+
         options.setExperimentalOption(
                 "prefs",
                 prefs
         );
 
-        // Disable breached password warning
+        // Disable Chrome popup features that may interfere with testing
         options.addArguments(
-                "--disable-features=PasswordLeakDetection"
+                "--disable-features=PasswordLeakDetection,AutofillAddressProfileSavePrompt"
         );
 
         driver = new ChromeDriver(options);
 
-        driver.manage().window().maximize();
+        driver.manage()
+                .window()
+                .maximize();
     }
+
 
     @After
     public void tearDown() {
