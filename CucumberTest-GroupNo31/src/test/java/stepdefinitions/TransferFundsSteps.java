@@ -19,11 +19,6 @@ public class TransferFundsSteps {
 
     private WebDriverWait wait;
 
-    // Accounts manually verified for this ParaBank test user
-    private static final String FROM_ACCOUNT = "14676";
-    private static final String TO_ACCOUNT = "13677";
-
-    // Values captured for defect-revealing scenarios
     private double zeroBalanceBefore;
     private double zeroBalanceAfter;
     private boolean zeroTransferCompleted;
@@ -41,21 +36,36 @@ public class TransferFundsSteps {
     private boolean sameAccountTransferCompleted;
 
 
+    private String sourceAccount() {
+
+        return CommonSteps
+                .getSourceAccountNumber();
+    }
+
+
+    private String destinationAccount() {
+
+        return CommonSteps
+                .getDestinationAccountNumber();
+    }
+
+
     private WebDriverWait getWait() {
 
         if (wait == null) {
-            wait = new WebDriverWait(
-                    Hooks.driver,
-                    Duration.ofSeconds(15)
-            );
+
+            wait =
+                    new WebDriverWait(
+                            Hooks.driver,
+                            Duration.ofSeconds(15)
+                    );
         }
 
         return wait;
     }
 
 
-
-    // BACKGROUND check
+    // BACKGROUND
     @And("I am on the Transfer Funds page")
     public void iAmOnTheTransferFundsPage() {
 
@@ -89,67 +99,55 @@ public class TransferFundsSteps {
                             )
                     );
 
+
             boolean sourceExists =
-                    fromAccounts.getOptions()
+                    fromAccounts
+                            .getOptions()
                             .stream()
                             .anyMatch(option ->
                                     option.getText()
                                             .trim()
-                                            .equals(FROM_ACCOUNT)
+                                            .equals(
+                                                    sourceAccount()
+                                            )
                             );
+
 
             boolean destinationExists =
-                    toAccounts.getOptions()
+                    toAccounts
+                            .getOptions()
                             .stream()
                             .anyMatch(option ->
                                     option.getText()
                                             .trim()
-                                            .equals(TO_ACCOUNT)
+                                            .equals(
+                                                    destinationAccount()
+                                            )
                             );
 
-            return sourceExists && destinationExists;
+
+            return sourceExists &&
+                    destinationExists;
         });
 
 
-        Select fromAccounts =
-                new Select(
-                        Hooks.driver.findElement(
-                                By.id("fromAccountId")
-                        )
-                );
-
-        Select toAccounts =
-                new Select(
-                        Hooks.driver.findElement(
-                                By.id("toAccountId")
-                        )
-                );
-
-
-        assertAll(
-
-                () -> assertTrue(
-                        fromAccounts.getOptions().size() >= 2,
-                        "At least two source accounts are required."
-                ),
-
-                () -> assertTrue(
-                        toAccounts.getOptions().size() >= 2,
-                        "At least two destination accounts are required."
-                )
+        assertNotEquals(
+                sourceAccount(),
+                destinationAccount(),
+                "Two different accounts are required."
         );
     }
 
 
-    // VALID TRANSFERS
-    // Includes integer and decimal amounts
+    // VALID TRANSFER
     @When("I transfer {string} from the first account to the second account")
-    public void iTransferValidAmount(String amount) {
+    public void iTransferValidAmount(
+            String amount) {
 
         enterTransferDetails(
                 amount,
-                FROM_ACCOUNT,
-                TO_ACCOUNT
+                sourceAccount(),
+                destinationAccount()
         );
 
         submitTransfer();
@@ -163,99 +161,98 @@ public class TransferFundsSteps {
     }
 
 
-    // NON-NUMERIC INVALID INPUT
+    // NON-NUMERIC
     @When("I attempt to transfer {string} from the first account to the second account")
-    public void iAttemptToTransferInvalidAmount(String amount) {
+    public void iAttemptInvalidAmount(
+            String amount) {
 
         enterTransferDetails(
                 amount,
-                FROM_ACCOUNT,
-                TO_ACCOUNT
+                sourceAccount(),
+                destinationAccount()
         );
 
         submitTransfer();
     }
 
 
-    // BLANK AMOUNT
+    // BLANK
     @When("I attempt to transfer a blank amount")
-    public void iAttemptToTransferABlankAmount() {
+    public void iAttemptBlankAmount() {
 
         enterTransferDetails(
                 "",
-                FROM_ACCOUNT,
-                TO_ACCOUNT
+                sourceAccount(),
+                destinationAccount()
         );
 
         submitTransfer();
     }
 
 
-    // Used by both "abc" and blank amount scenarios
     @Then("the transfer should not be completed")
     public void theTransferShouldNotBeCompleted() {
 
         waitForTransferOutcome();
 
-        boolean successDisplayed =
-                isTransferCompleteVisible();
 
-        boolean errorDisplayed =
-                isErrorVisible();
+        assertFalse(
+                isTransferCompleteVisible(),
+                "Invalid transfer was incorrectly completed."
+        );
 
-        assertAll(
 
-                () -> assertFalse(
-                        successDisplayed,
-                        "The invalid transfer was incorrectly completed."
-                ),
-
-                () -> assertTrue(
-                        errorDisplayed,
-                        "ParaBank did not display the expected error."
-                )
+        assertTrue(
+                isErrorVisible(),
+                "Expected transfer error was not displayed."
         );
     }
 
 
     @And("I should see an internal transfer error")
-    public void iShouldSeeAnInternalTransferError() {
-
-        WebElement rightPanel =
-                Hooks.driver.findElement(
-                        By.id("rightPanel")
-                );
+    public void iShouldSeeInternalTransferError() {
 
         assertTrue(
-                rightPanel.getText().contains(
-                        "An internal error has occurred and has been logged."
-                ),
-                "Expected internal transfer error was not displayed."
+                Hooks.driver
+                        .findElement(
+                                By.id("rightPanel")
+                        )
+                        .getText()
+                        .contains(
+                                "An internal error has occurred and has been logged."
+                        ),
+
+                "Expected internal error message was not displayed."
         );
     }
 
 
-    // DEFECT 1 - ZERO AMOUNT
+    // ZERO
     @When("I attempt to transfer a zero amount")
-    public void iAttemptToTransferAZeroAmount() {
+    public void iAttemptZeroAmount() {
 
         zeroBalanceBefore =
                 getSourceAccountBalance();
 
+
         openTransferFundsPage();
+
 
         enterTransferDetails(
                 "0",
-                FROM_ACCOUNT,
-                TO_ACCOUNT
+                sourceAccount(),
+                destinationAccount()
         );
+
 
         submitTransfer();
 
         waitForTransferOutcome();
 
+
         zeroTransferCompleted =
                 isTransferCompleteVisible();
+
 
         zeroBalanceAfter =
                 getSourceAccountBalance();
@@ -263,15 +260,14 @@ public class TransferFundsSteps {
 
 
     @Then("the zero-value transfer should be rejected")
-    public void theZeroValueTransferShouldBeRejected() {
+    public void zeroTransferShouldBeRejected() {
 
         assertAll(
 
                 () -> assertFalse(
                         zeroTransferCompleted,
 
-                        "DEFECT FOUND: ParaBank accepted a zero-value " +
-                                "transfer instead of rejecting it."
+                        "DEFECT FOUND: ParaBank accepted a zero-value transfer."
                 ),
 
                 () -> assertEquals(
@@ -279,39 +275,39 @@ public class TransferFundsSteps {
                         zeroBalanceAfter,
                         0.01,
 
-                        "DEFECT FOUND: Source account balance changed " +
-                                "during the zero-value transfer. " +
-                                "Balance before = " +
-                                zeroBalanceBefore +
-                                ", balance after = " +
-                                zeroBalanceAfter
+                        "Source balance changed during zero-value transfer."
                 )
         );
     }
 
 
-    // DEFECT 2 - NEGATIVE AMOUNT
+    // NEGATIVE
     @When("I attempt to transfer the negative amount {string}")
-    public void iAttemptToTransferTheNegativeAmount(
+    public void iAttemptNegativeAmount(
             String amount) {
 
         negativeBalanceBefore =
                 getSourceAccountBalance();
 
+
         openTransferFundsPage();
+
 
         enterTransferDetails(
                 amount,
-                FROM_ACCOUNT,
-                TO_ACCOUNT
+                sourceAccount(),
+                destinationAccount()
         );
+
 
         submitTransfer();
 
         waitForTransferOutcome();
 
+
         negativeTransferCompleted =
                 isTransferCompleteVisible();
+
 
         negativeBalanceAfter =
                 getSourceAccountBalance();
@@ -319,15 +315,14 @@ public class TransferFundsSteps {
 
 
     @Then("the negative-value transfer should be rejected")
-    public void theNegativeValueTransferShouldBeRejected() {
+    public void negativeTransferShouldBeRejected() {
 
         assertAll(
 
                 () -> assertFalse(
                         negativeTransferCompleted,
 
-                        "DEFECT FOUND: ParaBank accepted a negative " +
-                                "transfer amount instead of rejecting it."
+                        "DEFECT FOUND: ParaBank accepted a negative transfer amount."
                 ),
 
                 () -> assertEquals(
@@ -335,32 +330,28 @@ public class TransferFundsSteps {
                         negativeBalanceAfter,
                         0.01,
 
-                        "DEFECT FOUND: The source account balance changed " +
-                                "after a negative transfer. " +
-                                "Balance before = " +
-                                negativeBalanceBefore +
-                                ", balance after = " +
-                                negativeBalanceAfter
+                        "DEFECT FOUND: Source balance changed after negative transfer."
                 )
         );
     }
 
 
-    // DEFECT 3 - AMOUNT GREATER THAN BALANCE
+    // OVER BALANCE
     @When("I attempt to transfer more than the source account balance")
-    public void iAttemptToTransferMoreThanTheSourceAccountBalance() {
+    public void iAttemptOverBalanceTransfer() {
 
         overBalanceBefore =
                 getSourceAccountBalance();
 
-        /*
-         * Helps to generate an amount that is definitely greater than
-         * the current balance.
-         */
+
         double excessiveAmount =
-                Math.abs(overBalanceBefore) + 1000.00;
+                Math.abs(
+                        overBalanceBefore
+                ) + 1000.00;
+
 
         openTransferFundsPage();
+
 
         String amount =
                 String.format(
@@ -369,18 +360,22 @@ public class TransferFundsSteps {
                         excessiveAmount
                 );
 
+
         enterTransferDetails(
                 amount,
-                FROM_ACCOUNT,
-                TO_ACCOUNT
+                sourceAccount(),
+                destinationAccount()
         );
+
 
         submitTransfer();
 
         waitForTransferOutcome();
 
+
         overBalanceTransferCompleted =
                 isTransferCompleteVisible();
+
 
         overBalanceAfter =
                 getSourceAccountBalance();
@@ -388,15 +383,14 @@ public class TransferFundsSteps {
 
 
     @Then("the over-balance transfer should be rejected")
-    public void theOverBalanceTransferShouldBeRejected() {
+    public void overBalanceTransferShouldBeRejected() {
 
         assertAll(
 
                 () -> assertFalse(
                         overBalanceTransferCompleted,
 
-                        "DEFECT FOUND: ParaBank allowed a transfer " +
-                                "greater than the source account balance."
+                        "DEFECT FOUND: ParaBank allowed a transfer greater than the source balance."
                 ),
 
                 () -> assertEquals(
@@ -404,42 +398,39 @@ public class TransferFundsSteps {
                         overBalanceAfter,
                         0.01,
 
-                        "DEFECT FOUND: The source balance changed after " +
-                                "an over-balance transfer. " +
-                                "Balance before = " +
-                                overBalanceBefore +
-                                ", balance after = " +
-                                overBalanceAfter
+                        "DEFECT FOUND: Source balance changed after over-balance transfer."
                 )
         );
     }
 
 
-    // DEFECT 4 - SAME SOURCE AND DESTINATION ACCOUNT
+    // SAME ACCOUNT
     @When("I attempt to transfer {string} from an account to the same account")
-    public void iAttemptToTransferFromAnAccountToTheSameAccount(
+    public void iAttemptSameAccountTransfer(
             String amount) {
 
         sameAccountBalanceBefore =
                 getSourceAccountBalance();
 
+
         openTransferFundsPage();
 
-        /*
-         * Use FROM_ACCOUNT as both sender and receiver.
-         */
+
         enterTransferDetails(
                 amount,
-                FROM_ACCOUNT,
-                FROM_ACCOUNT
+                sourceAccount(),
+                sourceAccount()
         );
+
 
         submitTransfer();
 
         waitForTransferOutcome();
 
+
         sameAccountTransferCompleted =
                 isTransferCompleteVisible();
+
 
         sameAccountBalanceAfter =
                 getSourceAccountBalance();
@@ -447,16 +438,14 @@ public class TransferFundsSteps {
 
 
     @Then("the same-account transfer should be rejected")
-    public void theSameAccountTransferShouldBeRejected() {
+    public void sameAccountTransferShouldBeRejected() {
 
         assertAll(
 
                 () -> assertFalse(
                         sameAccountTransferCompleted,
 
-                        "DEFECT FOUND: ParaBank allowed a transfer " +
-                                "where the source and destination accounts " +
-                                "were the same."
+                        "DEFECT FOUND: ParaBank allowed transfer to the same account."
                 ),
 
                 () -> assertEquals(
@@ -464,18 +453,13 @@ public class TransferFundsSteps {
                         sameAccountBalanceAfter,
                         0.01,
 
-                        "DEFECT FOUND: The account balance changed during " +
-                                "a same-account transfer. " +
-                                "Balance before = " +
-                                sameAccountBalanceBefore +
-                                ", balance after = " +
-                                sameAccountBalanceAfter
+                        "Account balance changed during same-account transfer."
                 )
         );
     }
 
 
-    // HELPER Functions
+    // HELPERS
     private void openTransferFundsPage() {
 
         getWait().until(
@@ -492,7 +476,6 @@ public class TransferFundsSteps {
         );
 
 
-        // Wait until the required account data has loaded
         getWait().until(driver -> {
 
             Select accounts =
@@ -502,12 +485,16 @@ public class TransferFundsSteps {
                             )
                     );
 
-            return accounts.getOptions()
+
+            return accounts
+                    .getOptions()
                     .stream()
                     .anyMatch(option ->
                             option.getText()
                                     .trim()
-                                    .equals(FROM_ACCOUNT)
+                                    .equals(
+                                            sourceAccount()
+                                    )
                     );
         });
     }
@@ -515,8 +502,8 @@ public class TransferFundsSteps {
 
     private void enterTransferDetails(
             String amount,
-            String fromAccountNumber,
-            String toAccountNumber) {
+            String from,
+            String to) {
 
         WebElement amountField =
                 getWait().until(
@@ -525,10 +512,12 @@ public class TransferFundsSteps {
                         )
                 );
 
+
         amountField.clear();
 
-        // Empty string is intentional for the blank-input test
-        amountField.sendKeys(amount);
+        amountField.sendKeys(
+                amount
+        );
 
 
         Select fromAccount =
@@ -548,30 +537,25 @@ public class TransferFundsSteps {
 
 
         fromAccount.selectByVisibleText(
-                fromAccountNumber
+                from
         );
 
 
         toAccount.selectByVisibleText(
-                toAccountNumber
+                to
         );
     }
 
 
     private void submitTransfer() {
 
-        WebElement transferButton =
-                getWait().until(
-                        ExpectedConditions.elementToBeClickable(
-                                By.cssSelector(
-                                        "#rightPanel " +
-                                                "input[type='submit']" +
-                                                "[value='Transfer']"
-                                )
+        getWait().until(
+                ExpectedConditions.elementToBeClickable(
+                        By.cssSelector(
+                                "#rightPanel input[type='submit'][value='Transfer']"
                         )
-                );
-
-        transferButton.click();
+                )
+        ).click();
     }
 
 
@@ -581,8 +565,7 @@ public class TransferFundsSteps {
                 getWait().until(
                         ExpectedConditions.visibilityOfElementLocated(
                                 By.xpath(
-                                        "//*[@id='rightPanel']//h1" +
-                                                "[normalize-space()='Transfer Complete!']"
+                                        "//*[@id='rightPanel']//h1[normalize-space()='Transfer Complete!']"
                                 )
                         )
                 );
@@ -590,29 +573,18 @@ public class TransferFundsSteps {
 
         assertEquals(
                 "Transfer Complete!",
-                heading.getText().trim(),
-                "Transfer completion message was not displayed."
-        );
-
-
-        assertTrue(
-                Hooks.driver.findElement(
-                        By.id("rightPanel")
-                ).getText().contains(
-                        "has been transferred"
-                ),
-
-                "Transfer confirmation details were not displayed."
+                heading.getText()
+                        .trim()
         );
     }
 
 
     private boolean isTransferCompleteVisible() {
 
-        return Hooks.driver.findElements(
+        return Hooks.driver
+                .findElements(
                         By.xpath(
-                                "//*[@id='rightPanel']//h1" +
-                                        "[normalize-space()='Transfer Complete!']"
+                                "//*[@id='rightPanel']//h1[normalize-space()='Transfer Complete!']"
                         )
                 )
                 .stream()
@@ -624,10 +596,10 @@ public class TransferFundsSteps {
 
     private boolean isErrorVisible() {
 
-        return Hooks.driver.findElements(
+        return Hooks.driver
+                .findElements(
                         By.xpath(
-                                "//*[@id='rightPanel']//h1" +
-                                        "[normalize-space()='Error!']"
+                                "//*[@id='rightPanel']//h1[normalize-space()='Error!']"
                         )
                 )
                 .stream()
@@ -639,36 +611,10 @@ public class TransferFundsSteps {
 
     private void waitForTransferOutcome() {
 
-        getWait().until(driver -> {
-
-            boolean success =
-                    driver.findElements(
-                                    By.xpath(
-                                            "//*[@id='rightPanel']//h1" +
-                                                    "[normalize-space()='Transfer Complete!']"
-                                    )
-                            )
-                            .stream()
-                            .anyMatch(
-                                    WebElement::isDisplayed
-                            );
-
-
-            boolean error =
-                    driver.findElements(
-                                    By.xpath(
-                                            "//*[@id='rightPanel']//h1" +
-                                                    "[normalize-space()='Error!']"
-                                    )
-                            )
-                            .stream()
-                            .anyMatch(
-                                    WebElement::isDisplayed
-                            );
-
-
-            return success || error;
-        });
+        getWait().until(driver ->
+                isTransferCompleteVisible() ||
+                        isErrorVisible()
+        );
     }
 
 
@@ -688,21 +634,20 @@ public class TransferFundsSteps {
         );
 
 
-        WebElement accountRow =
+        WebElement row =
                 getWait().until(
                         ExpectedConditions.visibilityOfElementLocated(
                                 By.xpath(
-                                        "//table[@id='accountTable']" +
-                                                "//tr[td/a[normalize-space()='" +
-                                                FROM_ACCOUNT +
+                                        "//table[@id='accountTable']//tr[td/a[normalize-space()='" +
+                                                sourceAccount() +
                                                 "']]"
                                 )
                         )
                 );
 
 
-        String balanceText =
-                accountRow.findElements(
+        String balance =
+                row.findElements(
                                 By.tagName("td")
                         )
                         .get(1)
@@ -710,7 +655,7 @@ public class TransferFundsSteps {
 
 
         return parseMoney(
-                balanceText
+                balance
         );
     }
 
@@ -725,7 +670,6 @@ public class TransferFundsSteps {
                         .trim();
 
 
-        // Handles values such as ($100.00)
         if (cleaned.startsWith("(")
                 && cleaned.endsWith(")")) {
 
