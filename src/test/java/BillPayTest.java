@@ -5,6 +5,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import java.math.BigDecimal;
 
 import java.util.List;
 
@@ -36,6 +37,25 @@ public class BillPayTest extends BaseTest {
 
     private void sendPayment() {
         driver.findElement(By.cssSelector("input[value='Send Payment']")).click();
+    }
+    private void goToBillPay() {
+        driver.findElement(By.linkText("Bill Pay")).click();
+        wait.until(d -> new Select(d.findElement(By.name("fromAccountId"))).getOptions().size() > 0);
+    }
+
+    private BigDecimal readBalance(String accountId) {
+        driver.findElement(By.partialLinkText("Accounts Overview")).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.linkText(accountId)));
+        String balanceText = driver.findElement(
+                By.xpath("//a[text()='" + accountId + "']/ancestor::tr/td[2]")).getText();
+        return new BigDecimal(balanceText.replace("$", "").replace(",", ""));
+    }
+    private BigDecimal readBalanceFromAccountDetails(String accountId) {
+        driver.findElement(By.partialLinkText("Accounts Overview")).click();
+        wait.until(ExpectedConditions.elementToBeClickable(By.linkText(accountId))).click();
+        wait.until(d -> !d.findElement(By.id("balance")).getText().isBlank());
+        String balanceText = driver.findElement(By.id("balance")).getText();
+        return new BigDecimal(balanceText.replace("$", "").replace(",", ""));
     }
 
     @Test
@@ -110,5 +130,31 @@ public class BillPayTest extends BaseTest {
         );
         assertFalse(driver.findElement(By.id("billpayResult")).isDisplayed(),
                 "Payment should not be completed");
+    }
+    @Test
+    @DisplayName("A bill payment reduces the account balance and appears in account activity")
+    public void billPaymentReducesBalanceAndAppearsInActivity() {
+        String fromAccount = new Select(driver.findElement(By.name("fromAccountId")))
+                .getFirstSelectedOption().getText();
+        BigDecimal balanceBefore = readBalance(fromAccount);
+
+        goToBillPay();
+        fillPayeeDetails("Electricity Company");
+        fillPaymentDetails("12345", "12345", "50");
+        sendPayment();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("billpayResult")));
+
+        BigDecimal balanceAfter = readBalanceFromAccountDetails(fromAccount);
+
+        assertAll("Bill payment effect on account",
+                () -> assertEquals(0, balanceBefore.subtract(new BigDecimal("50")).compareTo(balanceAfter),
+                        "Defect: bill payment of $50.00 did not reduce the balance (before: "
+                                + balanceBefore + ", after: " + balanceAfter + ")"),
+                () -> {
+                    WebElement paymentRow = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                            By.xpath("//table[@id='transactionTable']//tr[td/a[text()='Bill Payment to Electricity Company']]")));
+                    assertEquals("$50.00", paymentRow.findElement(By.xpath("./td[3]")).getText());
+                }
+        );
     }
 }
