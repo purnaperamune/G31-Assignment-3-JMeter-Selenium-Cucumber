@@ -157,4 +157,18 @@ public class BillPayTest extends BaseTest {
                 }
         );
     }
+    @Test
+    @DisplayName("Bill payment is blocked when the amount is not a number")
+    public void invalidAmountShowsError() {
+        fillPayeeDetails("Internet Provider");
+        fillPaymentDetails("12345", "12345", "abc");
+        sendPayment();
+
+        WebElement amountError = driver.findElement(By.id("validationModel-amount-invalid"));
+
+        assertTrue(amountError.isDisplayed(), "Invalid amount error should be shown");
+        assertEquals("Please enter a valid amount.", amountError.getText());
+        assertFalse(driver.findElement(By.id("billpayResult")).isDisplayed(),
+                "Payment should not be completed");
+    }
 }
