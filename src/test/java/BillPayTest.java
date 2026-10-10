@@ -6,6 +6,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import java.math.BigDecimal;
+import org.openqa.selenium.TimeoutException;
 
 import java.util.List;
 
@@ -151,9 +152,13 @@ public class BillPayTest extends BaseTest {
                         "Defect: bill payment of $50.00 did not reduce the balance (before: "
                                 + balanceBefore + ", after: " + balanceAfter + ")"),
                 () -> {
-                    WebElement paymentRow = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                            By.xpath("//table[@id='transactionTable']//tr[td/a[text()='Bill Payment to Electricity Company']]")));
-                    assertEquals("$50.00", paymentRow.findElement(By.xpath("./td[3]")).getText());
+                    try {
+                        WebElement paymentRow = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                                By.xpath("//table[@id='transactionTable']//tr[td/a[text()='Bill Payment to Electricity Company']]")));
+                        assertEquals("$50.00", paymentRow.findElement(By.xpath("./td[3]")).getText());
+                    } catch (TimeoutException e) {
+                        fail("Defect: 'Bill Payment Complete' was shown but the payment is not recorded in Account Activity");
+                    }
                 }
         );
     }
