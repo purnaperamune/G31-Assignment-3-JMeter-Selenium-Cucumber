@@ -176,4 +176,28 @@ public class BillPayTest extends BaseTest {
         assertFalse(driver.findElement(By.id("billpayResult")).isDisplayed(),
                 "Payment should not be completed");
     }
+    @Test
+    @DisplayName("A negative bill payment amount should be rejected and must not increase the balance")
+    public void negativeAmountShouldBeRejected() {
+        String fromAccount = new Select(driver.findElement(By.name("fromAccountId")))
+                .getFirstSelectedOption().getText();
+        BigDecimal balanceBefore = readBalance(fromAccount);
+
+        goToBillPay();
+        fillPayeeDetails("Electricity Company");
+        fillPaymentDetails("12345", "12345", "-50");
+        sendPayment();
+
+        wait.until(d -> d.findElement(By.id("billpayResult")).isDisplayed()
+                || d.findElement(By.id("validationModel-amount-invalid")).isDisplayed());
+        boolean paymentAccepted = driver.findElement(By.id("billpayResult")).isDisplayed();
+        BigDecimal balanceAfter = readBalanceFromAccountDetails(fromAccount);
+
+        assertAll("Negative amount handling",
+                () -> assertFalse(paymentAccepted,
+                        "Defect: ParaBank accepted a bill payment of -$50.00"),
+                () -> assertTrue(balanceAfter.compareTo(balanceBefore) <= 0,
+                        "Defect: balance increased from " + balanceBefore + " to " + balanceAfter)
+        );
+    }
 }
