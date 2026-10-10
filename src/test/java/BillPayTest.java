@@ -77,4 +77,38 @@ public class BillPayTest extends BaseTest {
                 () -> assertEquals("ParaBank | Bill Payment Complete", driver.getTitle())
         );
     }
+    @Test
+    @DisplayName("Bill payment is blocked when the account numbers do not match")
+    public void mismatchedAccountNumbersShowError() {
+        fillPayeeDetails("Water Company");
+        fillPaymentDetails("12345", "99999", "50");
+        sendPayment();
+
+        WebElement mismatchError = driver.findElement(By.id("validationModel-verifyAccount-mismatch"));
+
+        assertTrue(mismatchError.isDisplayed(), "Mismatch error should be shown");
+        assertEquals("The account numbers do not match.", mismatchError.getText());
+        assertFalse(driver.findElement(By.id("billpayResult")).isDisplayed(),
+                "Payment should not be completed");
+    }
+    @Test
+    @DisplayName("Submitting an empty bill pay form shows required-field errors")
+    public void emptyFormShowsRequiredErrors() {
+        sendPayment();
+
+        assertAll("Required field errors",
+                () -> assertEquals("Payee name is required.",
+                        driver.findElement(By.id("validationModel-name")).getText()),
+                () -> assertTrue(driver.findElement(By.id("validationModel-address")).isDisplayed()),
+                () -> assertTrue(driver.findElement(By.id("validationModel-city")).isDisplayed()),
+                () -> assertTrue(driver.findElement(By.id("validationModel-state")).isDisplayed()),
+                () -> assertTrue(driver.findElement(By.id("validationModel-zipCode")).isDisplayed()),
+                () -> assertTrue(driver.findElement(By.id("validationModel-phoneNumber")).isDisplayed()),
+                () -> assertTrue(driver.findElement(By.id("validationModel-account-empty")).isDisplayed()),
+                () -> assertEquals("The amount cannot be empty.",
+                        driver.findElement(By.id("validationModel-amount-empty")).getText())
+        );
+        assertFalse(driver.findElement(By.id("billpayResult")).isDisplayed(),
+                "Payment should not be completed");
+    }
 }
