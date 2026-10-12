@@ -164,4 +164,29 @@ public class RegistrationTest extends BaseTest {
         assertTrue(driver.findElements(By.id("customer.phoneNumber.errors")).isEmpty(),
                 "No errors should be displayed for the empty phone number");
     }
+
+    // Test Case 5 (negative): verify that when trying to submit an empty form, an error message is displayed for every required field
+    @Test
+    @SpiraTestCase(testCaseId = 53412)
+    @DisplayName("Verify that submitting an empty registration form displays an error message for each required field")
+    public void invalid_RegisterCustomer_WithNoDetails() {
+        // To click register button keeping the form empty
+        submit_RegistrationForm();
+
+        // To retrieve the error message next to each of the 10 required fields and check it matches the expected text
+        assertAll("Required field errors",
+                () -> assertEquals("First name is required.", get_FieldErrorMessage("customer.firstName")),
+                () -> assertEquals("Last name is required.", get_FieldErrorMessage("customer.lastName")),
+                () -> assertEquals("Address is required.", get_FieldErrorMessage("customer.address.street")),
+                () -> assertEquals("City is required.", get_FieldErrorMessage("customer.address.city")),
+                () -> assertEquals("State is required.", get_FieldErrorMessage("customer.address.state")),
+                () -> assertEquals("Zip Code is required.", get_FieldErrorMessage("customer.address.zipCode")),
+                () -> assertEquals("Social Security Number is required.", get_FieldErrorMessage("customer.ssn")),
+                () -> assertEquals("Username is required.", get_FieldErrorMessage("customer.username")),
+                () -> assertEquals("Password is required.", get_FieldErrorMessage("customer.password")),
+                () -> assertEquals("Password confirmation is required.", get_FieldErrorMessage("repeatedPassword"))
+        );
+        // If there is no "log Out" link then the user did not get registered or logged in
+        assertTrue(driver.findElements(By.linkText("Log Out")).isEmpty(), "User should not be able to register");
+    }
 }
