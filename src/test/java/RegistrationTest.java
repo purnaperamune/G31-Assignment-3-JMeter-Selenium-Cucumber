@@ -110,6 +110,30 @@ public class RegistrationTest extends BaseTest {
                 () -> assertTrue(driver.findElement(By.linkText("Log Out")).isDisplayed())
         );
     }
+
+    // Test Case 3 (positive): verify that a newly registered customer is linked with a bank account
+    @Test
+    @SpiraTestCase(testCaseId = 53407)
+    @DisplayName("Verify that a newly registered customer has at least one bank account on their Accounts Overview page")
+    public void valid_NewRegisteredCustomer_LinkedWithBankAccount() {
+        // To register a new customer
+        String unique_username = "user" + System.currentTimeMillis();
+        populate_customerRegistrationDetails(unique_username, TEST_PASSWORD, TEST_PASSWORD);
+        submit_RegistrationForm();
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                By.id("rightPanel"), "Your account was created successfully"));
+
+        // By.partialLinkText is used to match a specific link text
+        driver.findElement(By.partialLinkText("Accounts Overview")).click();
+        // To wait for the accounts table to display at least one account link
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#accountTable tbody a")));
+
+        // To collect all the account links from the table
+        List<WebElement> accountLinks = driver.findElements(By.cssSelector("#accountTable tbody a"));
+        assertFalse(accountLinks.isEmpty(), "New customer should have at least one account");
+        // Account number should contain only numbers because "\\d+" means "one or more digits"
+        assertTrue(accountLinks.get(0).getText().matches("\\d+"), "Account number should be numeric");
+    }
     
 
 }
