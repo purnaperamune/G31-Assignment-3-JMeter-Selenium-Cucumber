@@ -206,4 +206,31 @@ public class RegistrationTest extends BaseTest {
         assertNotEquals("Welcome", driver.findElement(By.className("title")).getText().split(" ")[0],
                 "The welcome page should not be displayed");
     }
+
+    // Test Case 7 (negative): verify that registration is not successful when the username already exists
+    @Test
+    @SpiraTestCase(testCaseId = 53414)
+    @DisplayName("Verify that registration is not successful when the username already exists")
+    public void invalid_RegisterCustomer_WithDuplicateUsername() {
+        // First: A new customer is registered with a unique username, then logged out
+        String existing_username = "user" + System.currentTimeMillis();
+        populate_customerRegistrationDetails(existing_username, TEST_PASSWORD, TEST_PASSWORD);
+        submit_RegistrationForm();
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                By.id("rightPanel"), "Your account was created successfully"));
+        driver.findElement(By.linkText("Log Out")).click();
+        // By.name finds an element by its name attribute
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")));
+
+        // Last: Register again using the same username
+        open_RegistrationPage();
+        populate_customerRegistrationDetails(existing_username, TEST_PASSWORD, TEST_PASSWORD);
+        submit_RegistrationForm();
+
+        // Check if error message is shown next to the Username field
+        assertEquals("This username already exists.", get_FieldErrorMessage("customer.username"));
+        // By.tagName finds an element by its HTML tag, and "body" is the whole page
+        assertTrue(driver.findElement(By.tagName("body")).getText().contains("Signing up is easy!"),
+                "Registration should fail for a duplicate username, so the user should stay on the registration page and not proceed");
+    }
 }
