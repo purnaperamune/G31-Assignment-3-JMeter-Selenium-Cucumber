@@ -114,4 +114,17 @@ public class LoginTest extends BaseTest {
         assertEquals("The username and password could not be verified.", get_ErrorMessage());
     }
 
+    // Test Case 4 (negative): verify that login is not successful with a username that is not registered
+    @Test
+    @SpiraTestCase(testCaseId = 53473)
+    @DisplayName("Verify that login is not successful with a username that is not registered before")
+    public void invalid_Login_WithUsernameNotRegistered() {
+        // Adding the current time makes sure this username has never been registered
+        login("rose" + System.currentTimeMillis(), TEST_PASSWORD);
+
+        assertEquals("The username and password could not be verified.", get_ErrorMessage());
+        // If an empty list is returned, there is no "Log Out" link, so the customer is not logged in
+        assertTrue(driver.findElements(By.linkText("Log Out")).isEmpty(), "The customer should not get logged in");
+    }
+
 }
