@@ -42,6 +42,31 @@ public class RegistrationTest extends BaseTest {
         // Wait until the registration form has loaded
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("customerForm")));
     }
+    // HELPER METHODS
+
+    // Types a value into every registration field.
+    // The username and both passwords are passed in, so each test can choose them.
+    private void populate_customerRegistrationDetails(String username, String password, String confirmPassword) {
+        // By.id finds an element by its unique id attribute
+        driver.findElement(By.id("customer.firstName")).sendKeys("Roshni");
+        driver.findElement(By.id("customer.lastName")).sendKeys("Chandrasekaran");
+        driver.findElement(By.id("customer.address.street")).sendKeys("82 Campbell");
+        driver.findElement(By.id("customer.address.city")).sendKeys("Hawthorn East");
+        driver.findElement(By.id("customer.address.state")).sendKeys("Victoria");
+        driver.findElement(By.id("customer.address.zipCode")).sendKeys("3000");
+        driver.findElement(By.id("customer.phoneNumber")).sendKeys("0412039000");
+        driver.findElement(By.id("customer.ssn")).sendKeys("124-45-5769");
+        driver.findElement(By.id("customer.username")).sendKeys(username);
+        driver.findElement(By.id("customer.password")).sendKeys(password);
+        driver.findElement(By.id("repeatedPassword")).sendKeys(confirmPassword);
+    }
+
+    // Clicks the Register button.
+    // By.xpath finds the button with the value "Register" inside the registration form
+    private void submit_RegistrationForm() {
+        driver.findElement(By.xpath("//form[@id='customerForm']//input[@value='Register']")).click();
+    }
+
 
     // ---------- Tests for Registration Requirement ----------
 
@@ -59,4 +84,32 @@ public class RegistrationTest extends BaseTest {
         // allMatch checks that every field in the list is visible on screen
         assertTrue(textFields.stream().allMatch(WebElement::isDisplayed), "All fields should be visible");
     }
+
+    // Test Case 2 (positive): verify that an account is registered successfully with given valid details and allows the user to log in
+    @Test
+    @SpiraTestCase(testCaseId = 53406)
+    @DisplayName("Verify that registering with valid details creates an account and allows the user to log in")
+    public void valid_RegisterationAndLogin_WithValidDetails() {
+        // Adding the current time would make the username unique during each run
+        String unique_username = "user" + System.currentTimeMillis();
+        populate_customerRegistrationDetails(unique_username, TEST_PASSWORD, TEST_PASSWORD);
+        submit_RegistrationForm();
+
+        // To wait for the success message before checking the page
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                By.id("rightPanel"), "Your account was created successfully"));
+
+        // assertAll: runs all the checks and reports all failures together
+        assertAll("Successful registration",
+                () -> assertEquals("Welcome " + unique_username, driver.findElement(By.className("title")).getText()),
+                () -> assertTrue(driver.findElement(By.xpath("//div[@id='rightPanel']/p")).getText()
+                        .contains("You are now logged in.")),
+                () -> assertEquals("Welcome Roshni Chandrasekaran",
+                        driver.findElement(By.cssSelector("#leftPanel p.smallText")).getText()),
+                // A "Log Out" link displayed shows that the user is currently logged in
+                () -> assertTrue(driver.findElement(By.linkText("Log Out")).isDisplayed())
+        );
+    }
+    
+
 }
