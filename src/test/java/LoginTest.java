@@ -247,7 +247,7 @@ public class LoginTest extends BaseTest {
 
     // Test Case 10 (positive): verify that a customer can recover their username and password by entering the same details used during registration on the Forgot login info page
     @Test
-    @SpiraTestCase(testCaseId = 00000)
+    @SpiraTestCase(testCaseId = 53479)
     @DisplayName("Verify that a customer can recover their username and password by entering their registered details on the Forgot login info page")
     public void valid_RecoverLoginCredentials_WithRegisteredDetails() {
         // To prepare unique details for the registration
@@ -269,6 +269,20 @@ public class LoginTest extends BaseTest {
                 // ParaBank also logs the customer in, so the "Log Out" link should be shown
                 () -> assertTrue(driver.findElement(By.linkText("Log Out")).isDisplayed(), "The customer should be logged in")
         );
+    }
+
+    // Test Case 11 (negative): verify that an error is displayed when the details entered to recover credentials do not match any customer
+    @Test
+    @SpiraTestCase(testCaseId = 53483)
+    @DisplayName("Verify that an error is displayed on the Forgot login info page when the details entered to recover credentials do not match any registered customer")
+    public void invalid_RecoverLoginCredentials_WithUnregisteredDetails() {
+        // To submit a unique last name and SSN that no customer has registered with
+        String time_stamp = String.valueOf(System.currentTimeMillis());
+        submit_ForgotLoginForm("Unknown" + time_stamp, time_stamp.substring(time_stamp.length() - 9));
+
+        assertEquals("The customer information provided could not be found.", get_ErrorMessage());
+        // If an empty list is returned, there is no "Log Out" link, so the customer is not logged in
+        assertTrue(driver.findElements(By.linkText("Log Out")).isEmpty(), "The customer should not get logged in");
     }
 
 }
