@@ -58,6 +58,50 @@ public class LoginTest extends BaseTest {
                 .getText();
     }
 
+    // This helper method registers a customer with a unique last name and SSN, then logs out.
+    // Every other test customer has the same name and SSN, so a unique customer makes sure
+    // the Forgot login info page finds only this customer.
+    private String register_UniqueCustomer(String last_name, String ssn) {
+        String new_username = "rose" + System.currentTimeMillis();
+        driver.findElement(By.linkText("Register")).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("customer.firstName")));
+
+        driver.findElement(By.id("customer.firstName")).sendKeys("Roshni");
+        driver.findElement(By.id("customer.lastName")).sendKeys(last_name);
+        driver.findElement(By.id("customer.address.street")).sendKeys("1 Test Street");
+        driver.findElement(By.id("customer.address.city")).sendKeys("Melbourne");
+        driver.findElement(By.id("customer.address.state")).sendKeys("VIC");
+        driver.findElement(By.id("customer.address.zipCode")).sendKeys("3000");
+        driver.findElement(By.id("customer.ssn")).sendKeys(ssn);
+        driver.findElement(By.id("customer.username")).sendKeys(new_username);
+        driver.findElement(By.id("customer.password")).sendKeys(TEST_PASSWORD);
+        driver.findElement(By.id("repeatedPassword")).sendKeys(TEST_PASSWORD);
+        driver.findElement(By.cssSelector("input[value='Register']")).click();
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                By.id("rightPanel"), "Your account was created successfully"));
+
+        // To log out, so the test can use the Forgot login info page as a logged-out customer
+        driver.findElement(By.linkText("Log Out")).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")));
+        return new_username;
+    }
+
+    // This helper method opens the Forgot login info page, fills in the customer's details and submits the form.
+    private void submit_ForgotLoginForm(String last_name, String ssn) {
+        // By.partialLinkText finds the "Forgot login info?" link using only part of its text
+        driver.findElement(By.partialLinkText("Forgot login")).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("lookupForm")));
+
+        driver.findElement(By.id("firstName")).sendKeys("Roshni");
+        driver.findElement(By.id("lastName")).sendKeys(last_name);
+        driver.findElement(By.id("address.street")).sendKeys("1 Test Street");
+        driver.findElement(By.id("address.city")).sendKeys("Melbourne");
+        driver.findElement(By.id("address.state")).sendKeys("VIC");
+        driver.findElement(By.id("address.zipCode")).sendKeys("3000");
+        driver.findElement(By.id("ssn")).sendKeys(ssn);
+        driver.findElement(By.xpath("//form[@id='lookupForm']//input[@value='Find My Login Info']")).click();
+    }
+
     // ---------- Tests for Login Requirement ----------
 
     // Test Case 1 (positive): verify that a customer can log in with correct details,
@@ -199,6 +243,32 @@ public class LoginTest extends BaseTest {
         assertEquals("Customer Login", driver.findElement(By.cssSelector("#leftPanel h2")).getText());
         // If an empty list is returned, there is no "Log Out" link, so the customer is logged out
         assertTrue(driver.findElements(By.linkText("Log Out")).isEmpty(), "The customer should be logged out");
+    }
+
+    // Test Case 10 (positive): verify that a customer can recover their username and password by entering the same details used during registration on the Forgot login info page
+    @Test
+    @SpiraTestCase(testCaseId = 00000)
+    @DisplayName("Verify that a customer can recover their username and password by entering their registered details on the Forgot login info page")
+    public void valid_RecoverLoginCredentials_WithRegisteredDetails() {
+        // To prepare unique details for the registration
+        String time_stamp = String.valueOf(System.currentTimeMillis());
+        String last_name = "Chandra" + time_stamp;
+        String ssn = time_stamp.substring(time_stamp.length() - 9);
+        String recovered_username = register_UniqueCustomer(last_name, ssn);
+
+        submit_ForgotLoginForm(last_name, ssn);
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                By.id("rightPanel"), "Your login information was located successfully"));
+
+        // To read all the text in the recovered login details panel
+        String panel_text = driver.findElement(By.id("rightPanel")).getText();
+        assertAll("Recovered login details",
+                () -> assertEquals("Customer Lookup", driver.findElement(By.className("title")).getText()),
+                () -> assertTrue(panel_text.contains("Username: " + recovered_username), "The username should be displayed"),
+                () -> assertTrue(panel_text.contains("Password: " + TEST_PASSWORD), "The password should be displayed"),
+                // ParaBank also logs the customer in, so the "Log Out" link should be shown
+                () -> assertTrue(driver.findElement(By.linkText("Log Out")).isDisplayed(), "The customer should be logged in")
+        );
     }
 
 }
