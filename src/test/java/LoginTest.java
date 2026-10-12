@@ -141,4 +141,17 @@ public class LoginTest extends BaseTest {
                 "The Accounts Overview page should not be displayed");
     }
 
+    // Test Case 6 (negative): verify that login is not successful when the username is left empty and only the password is entered
+    @Test
+    @SpiraTestCase(testCaseId = 53475)
+    @DisplayName("Verify that login is not successful when the username is not entered and only the password is entered")
+    public void invalid_Login_WithNoUsername() {
+        // To click Log In with an empty username and the correct password
+        login("", TEST_PASSWORD);
+
+        assertEquals("Please enter a username and password.", get_ErrorMessage());
+        // If an empty list is returned, there is no "Log Out" link, so the customer is not logged in
+        assertTrue(driver.findElements(By.linkText("Log Out")).isEmpty(), "The customer should not get logged in");
+    }
+
 }
