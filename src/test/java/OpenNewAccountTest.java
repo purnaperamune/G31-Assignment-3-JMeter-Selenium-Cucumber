@@ -5,7 +5,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
-
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,7 +19,20 @@ public class OpenNewAccountTest extends BaseTest {
         driver.findElement(By.linkText("Open New Account")).click();
         waitForFundingAccounts();
     }
+    private BigDecimal readBalanceFromOverview(String accountId) {
+        driver.findElement(By.partialLinkText("Accounts Overview")).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.linkText(accountId)));
+        String balanceText = driver.findElement(
+                By.xpath("//a[text()='" + accountId + "']/ancestor::tr/td[2]")).getText();
+        return new BigDecimal(balanceText.replace("$", "").replace(",", ""));
+    }
 
+    private BigDecimal readBalanceFromAccountDetails(String accountId) {
+        driver.get("https://parabank.parasoft.com/parabank/activity.htm?id=" + accountId);
+        wait.until(d -> !d.findElement(By.id("balance")).getText().isBlank());
+        String balanceText = driver.findElement(By.id("balance")).getText();
+        return new BigDecimal(balanceText.replace("$", "").replace(",", ""));
+    }
     private void waitForFundingAccounts() {
         wait.until(d -> new Select(d.findElement(By.id("fromAccountId"))).getOptions().size() > 0);
     }
@@ -85,5 +98,27 @@ public class OpenNewAccountTest extends BaseTest {
         driver.findElement(By.xpath("//a[@id='newAccountId']")).click();
         wait.until(ExpectedConditions.urlContains("activity.htm?id=" + newAccountId));
         assertTrue(driver.getCurrentUrl().contains("id=" + newAccountId));
+    }
+    @Test
+    @DisplayName("Opening an account moves the opening deposit from the funding account without changing the total")
+    public void openingAccountTransfersDepositFromFundingAccount() {
+        String fundingAccount = new Select(driver.findElement(By.id("fromAccountId")))
+                .getFirstSelectedOption().getText();
+        BigDecimal fundingBefore = readBalanceFromOverview(fundingAccount);
+
+        driver.findElement(By.linkText("Open New Account")).click();
+        waitForFundingAccounts();
+        String newAccountId = openAccount("SAVINGS");
+
+        BigDecimal fundingAfter = readBalanceFromAccountDetails(fundingAccount);
+        BigDecimal newAccountBalance = readBalanceFromAccountDetails(newAccountId);
+
+        assertAll("Opening deposit transfer",
+                () -> assertTrue(newAccountBalance.compareTo(BigDecimal.ZERO) > 0,
+                        "New account should receive an opening deposit, but its balance was " + newAccountBalance),
+                () -> assertEquals(0, fundingBefore.subtract(newAccountBalance).compareTo(fundingAfter),
+                        "Funding account should drop by exactly the opening deposit, keeping the total unchanged (before: "
+                                + fundingBefore + ", deposit: " + newAccountBalance + ", after: " + fundingAfter + ")")
+        );
     }
 }
