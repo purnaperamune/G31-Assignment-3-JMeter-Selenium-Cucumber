@@ -50,6 +50,14 @@ public class LoginTest extends BaseTest {
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")));
     }
 
+    // HELPER METHODS
+
+    // This helper method returns the error message shown on the page.
+    private String get_ErrorMessage() {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#rightPanel p.error")))
+                .getText();
+    }
+
     // ---------- Tests for Login Requirement ----------
 
     // Test Case 1 (positive): verify that a customer can log in with correct details,
@@ -91,6 +99,19 @@ public class LoginTest extends BaseTest {
         // To get the balance from the second cell (td) of the first account row
         String account_balance = account_rows.get(0).findElements(By.tagName("td")).get(1).getText();
         assertTrue(account_balance.startsWith("$"), "The balance should be displayed in dollars");
+    }
+
+    // Test Case 3 (negative): verify that login is not successful with an incorrect password
+    @Test
+    @SpiraTestCase(testCaseId = 53472)
+    @DisplayName("Verify that login is not successful when the password is incorrect")
+    public void invalid_Login_WithIncorrectPassword() {
+        // Try to log in with the correct username but a wrong password
+        login(unique_username, "WrongPass@1");
+
+        // ParaBank shows an "Error!" heading and a verification error message
+        assertEquals("Error!", driver.findElement(By.cssSelector("#rightPanel h1.title")).getText());
+        assertEquals("The username and password could not be verified.", get_ErrorMessage());
     }
 
 }
