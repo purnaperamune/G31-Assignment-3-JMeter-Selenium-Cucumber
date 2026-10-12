@@ -181,4 +181,24 @@ public class LoginTest extends BaseTest {
         assertEquals("The username and password could not be verified.", get_ErrorMessage());
     }
 
+    // Test Case 9 (positive): verify that a logged-in customer can log out and is redirected to the login form
+    @Test
+    @SpiraTestCase(testCaseId = 53478)
+    @DisplayName("Verify that the login form is displayed after a customer logs out")
+    public void valid_AfterLogout_LoginFormDisplayed() {
+        login(unique_username, TEST_PASSWORD);
+        // To wait until the "Log Out" link can be clicked, then click it
+        wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Log Out"))).click();
+
+        // To wait until the username box appears again inside the login panel
+        WebElement username_field = wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//div[@id='loginPanel']//input[@name='username']")));
+
+        assertTrue(username_field.isDisplayed(), "The login form should be displayed after logging out");
+        assertTrue(driver.getCurrentUrl().contains("index.htm"), "The customer should be returned to the home page");
+        assertEquals("Customer Login", driver.findElement(By.cssSelector("#leftPanel h2")).getText());
+        // If an empty list is returned, there is no "Log Out" link, so the customer is logged out
+        assertTrue(driver.findElements(By.linkText("Log Out")).isEmpty(), "The customer should be logged out");
+    }
+
 }
