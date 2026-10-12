@@ -127,4 +127,18 @@ public class LoginTest extends BaseTest {
         assertTrue(driver.findElements(By.linkText("Log Out")).isEmpty(), "The customer should not get logged in");
     }
 
+    // Test Case 5 (negative): verify that login is not successful when both the username and password are left empty
+    @Test
+    @SpiraTestCase(testCaseId = 53474)
+    @DisplayName("Verify that login is not successful when no username or password is entered")
+    public void invalid_Login_WithNoCredentialsEntered() {
+        // To click Log In without entering a username or password
+        login("", "");
+
+        assertEquals("Please enter a username and password.", get_ErrorMessage());
+        // The browser tab title should not change to the Accounts Overview page
+        assertNotEquals("ParaBank | Accounts Overview", driver.getTitle(),
+                "The Accounts Overview page should not be displayed");
+    }
+
 }
