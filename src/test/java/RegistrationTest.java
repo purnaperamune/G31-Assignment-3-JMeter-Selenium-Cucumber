@@ -189,4 +189,21 @@ public class RegistrationTest extends BaseTest {
         // If there is no "log Out" link then the user did not get registered or logged in
         assertTrue(driver.findElements(By.linkText("Log Out")).isEmpty(), "User should not be able to register");
     }
+
+    // Test Case 6 (negative): verify that registration is not successful when the confirm password and the entered password do not match
+    @Test
+    @SpiraTestCase(testCaseId = 53413)
+    @DisplayName("Verify that registration is not successful when the confirm password does not match the entered password")
+    public void invalid_RegisterCustomer_WithIncorrectConfirmPassword() {
+        // A different password is entered in the Confirm password field
+        String unique_username = "user" + System.currentTimeMillis();
+        populate_customerRegistrationDetails(unique_username, TEST_PASSWORD, "NomatchRoshni@235");
+        submit_RegistrationForm();
+
+        // Check the error message shown next to the Confirm password field
+        assertEquals("Passwords did not match.", get_FieldErrorMessage("repeatedPassword"));
+        // The welcome page should not be displayed, because registration was not successful
+        assertNotEquals("Welcome", driver.findElement(By.className("title")).getText().split(" ")[0],
+                "The welcome page should not be displayed");
+    }
 }
