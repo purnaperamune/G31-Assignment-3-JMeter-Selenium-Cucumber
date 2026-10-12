@@ -89,7 +89,7 @@ public class RegistrationTest extends BaseTest {
     @Test
     @SpiraTestCase(testCaseId = 53406)
     @DisplayName("Verify that registering with valid details creates an account and allows the user to log in")
-    public void valid_RegisterationAndLogin_WithValidDetails() {
+    public void valid_RegistrationAndLogin_WithValidDetails() {
         // Adding the current time would make the username unique during each run
         String unique_username = "user" + System.currentTimeMillis();
         populate_customerRegistrationDetails(unique_username, TEST_PASSWORD, TEST_PASSWORD);
