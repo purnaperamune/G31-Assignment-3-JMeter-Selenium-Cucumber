@@ -121,4 +121,19 @@ public class OpenNewAccountTest extends BaseTest {
                                 + fundingBefore + ", deposit: " + newAccountBalance + ", after: " + fundingAfter + ")")
         );
     }
+    @Test
+    @DisplayName("A logged-out user cannot access the Open New Account page")
+    public void loggedOutUserCannotOpenAccount() {
+        driver.findElement(By.linkText("Log Out")).click();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")));
+
+        driver.get("https://parabank.parasoft.com/parabank/openaccount.htm");
+
+        assertTrue(driver.findElements(By.id("type")).isEmpty(),
+                "Account type dropdown should not be available when logged out");
+        assertTrue(driver.findElements(By.cssSelector("input[value='Open New Account']")).isEmpty(),
+                "Open New Account button should not be available when logged out");
+        assertTrue(driver.findElement(By.name("username")).isDisplayed(),
+                "Login form should be shown instead");
+    }
 }
