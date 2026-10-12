@@ -167,4 +167,18 @@ public class LoginTest extends BaseTest {
         assertFalse(driver.getCurrentUrl().contains("overview.htm"), "The Accounts Overview page should not be displayed");
     }
 
+    // Test Case 8 (negative): verify that login is not successful when the username is entered in the wrong letter case
+    @Test
+    @SpiraTestCase(testCaseId = 53477)
+    @DisplayName("Verify that login is not successful when the registered username is entered in the wrong letter case")
+    public void invalid_Login_WithUsernameInWrongCase() {
+        // For example "user1760000000000" becomes "USER1760000000000", so the username is the same but in capital letters
+        String wrongCase_username = unique_username.toUpperCase();
+        // To make sure the test data is really different from the registered username
+        assertNotEquals(unique_username, wrongCase_username, "The username should differ only by letter case");
+
+        login(wrongCase_username, TEST_PASSWORD);
+        assertEquals("The username and password could not be verified.", get_ErrorMessage());
+    }
+
 }
