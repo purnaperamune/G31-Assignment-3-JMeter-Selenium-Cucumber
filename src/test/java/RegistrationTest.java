@@ -67,6 +67,12 @@ public class RegistrationTest extends BaseTest {
         driver.findElement(By.xpath("//form[@id='customerForm']//input[@value='Register']")).click();
     }
 
+    // Returns the red error message shown next to a field.
+    // ParaBank gives each error the id "<field id>.errors", for example "customer.firstName.errors"
+    private String get_FieldErrorMessage(String fieldId) {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(fieldId + ".errors"))).getText();
+    }
+
 
     // ---------- Tests for Registration Requirement ----------
 
@@ -134,6 +140,28 @@ public class RegistrationTest extends BaseTest {
         // Account number should contain only numbers because "\\d+" means "one or more digits"
         assertTrue(accountLinks.get(0).getText().matches("\\d+"), "Account number should be numeric");
     }
-    
 
+    // Test Case 4 (positive): verify that registration is successful even if the optional phone number field is left empty
+    @Test
+    @SpiraTestCase(testCaseId = 53409)
+    @DisplayName("Verify that a customer can register even if the optional phone number is left empty")
+    public void valid_RegisterCustomer_WithNoOptionalPhoneNumber() {
+        String unique_username = "user" + System.currentTimeMillis();
+        populate_customerRegistrationDetails(unique_username, TEST_PASSWORD, TEST_PASSWORD);
+
+        // To remove the phone number as it was already populated by the helper method
+        WebElement phoneField = driver.findElement(By.id("customer.phoneNumber"));
+        phoneField.clear();
+        assertEquals("", phoneField.getDomProperty("value"), "Phone field should be empty before submitting");
+
+        submit_RegistrationForm();
+
+        // Registration should be successful without a phone number
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                By.id("rightPanel"), "Your account was created successfully"));
+        assertEquals("Welcome " + unique_username, driver.findElement(By.className("title")).getText());
+        // If an empty list is returned then there is no error message for the phone field
+        assertTrue(driver.findElements(By.id("customer.phoneNumber.errors")).isEmpty(),
+                "No errors should be displayed for the empty phone number");
+    }
 }
