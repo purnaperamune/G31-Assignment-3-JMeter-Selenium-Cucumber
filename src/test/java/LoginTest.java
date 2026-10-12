@@ -3,7 +3,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -70,6 +73,24 @@ public class LoginTest extends BaseTest {
         // To check that the username box no longer exists
         assertThrows(NoSuchElementException.class, () -> driver.findElement(By.name("username")),
                 "Once the customer is logged in successfully the login form should not be displayed");
+    }
+
+    // Test Case 2 (positive): verify that after logging in, at least one of the customer's accounts and its balance are listed on the Accounts Overview page
+    @Test
+    @SpiraTestCase(testCaseId = 53471)
+    @DisplayName("Verify that after the customer logs in, the Accounts Overview page lists at least one of the customer's accounts with a balance")
+    public void valid_AfterLogin_AccountWithBalanceDisplayed() {
+        login(unique_username, TEST_PASSWORD);
+        // To wait until at least one account link is listed in the accounts table
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#accountTable tbody a")));
+
+        // To find every table row that contains an account link
+        List<WebElement> account_rows = driver.findElements(By.xpath("//table[@id='accountTable']/tbody/tr[td/a]"));
+        assertFalse(account_rows.isEmpty(), "The table should have at-least one account row");
+
+        // To get the balance from the second cell (td) of the first account row
+        String account_balance = account_rows.get(0).findElements(By.tagName("td")).get(1).getText();
+        assertTrue(account_balance.startsWith("$"), "The balance should be displayed in dollars");
     }
 
 }
