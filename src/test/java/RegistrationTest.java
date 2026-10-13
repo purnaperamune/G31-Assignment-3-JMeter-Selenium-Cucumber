@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 // Owner: Member 3 – User Registration tests
 // Requirement: REQ-01 User Registration
-// Test cases: TC-REG-01 to TC-REG-07
+// Test cases: TC-REG-01 to TC-REG-08
 //
 
 import com.inflectra.spiratest.addons.junitextension.SpiraTestCase;
@@ -232,5 +232,24 @@ public class RegistrationTest extends BaseTest {
         // By.tagName finds an element by its HTML tag, and "body" is the whole page
         assertTrue(driver.findElement(By.tagName("body")).getText().contains("Signing up is easy!"),
                 "Registration should fail for a duplicate username, so the user should stay on the registration page and not proceed");
+    }
+
+    // Test Case 8 (boundary): verify whether a customer can register with a short password of 1 character
+    @Test
+    @SpiraTestCase(testCaseId = 53486)
+    @DisplayName("Verify that a customer can register with a password of only 1 character")
+    public void boundary_RegisterCustomer_WithShortestPassword() {
+        String unique_username = "user" + System.currentTimeMillis();
+        // "r" as the shortest password
+        populate_customerRegistrationDetails(unique_username, "r", "r");
+        submit_RegistrationForm();
+
+        // ParaBank has no stated minimum length, so registration is expected to be successful
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(
+                By.id("rightPanel"), "Your account was created successfully"));
+        // If an empty list is returned, there is no error message for the password field
+        assertTrue(driver.findElements(By.id("customer.password.errors")).isEmpty(),
+                "No error should be displayed regarding the password");
+        assertTrue(driver.findElement(By.linkText("Log Out")).isDisplayed(), "The customer should get logged in");
     }
 }
