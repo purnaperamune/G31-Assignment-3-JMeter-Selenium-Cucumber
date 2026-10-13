@@ -12,8 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 // Owner: Member 3 – Login tests
 // Requirement: REQ-02 User Login
-// Test cases: TC-LOG-01 to TC-LOG-13
-//
+// Test cases: TC-LOG-01 to TC-LOG-12
 
 import com.inflectra.spiratest.addons.junitextension.SpiraTestCase;
 import com.inflectra.spiratest.addons.junitextension.SpiraTestConfiguration;
@@ -62,11 +61,6 @@ public class LoginTest extends BaseTest {
     // Every other test customer has the same name and SSN, so a unique customer makes sure
     // the Forgot login info page finds only this customer.
     private String register_UniqueCustomer(String last_name, String ssn) {
-        return register_UniqueCustomer(last_name, ssn, TEST_PASSWORD);
-    }
-
-    // Same as above, but the test can choose the password
-    private String register_UniqueCustomer(String last_name, String ssn, String password) {
         String new_username = "rose" + System.currentTimeMillis();
         driver.findElement(By.linkText("Register")).click();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("customer.firstName")));
@@ -79,8 +73,8 @@ public class LoginTest extends BaseTest {
         driver.findElement(By.id("customer.address.zipCode")).sendKeys("3000");
         driver.findElement(By.id("customer.ssn")).sendKeys(ssn);
         driver.findElement(By.id("customer.username")).sendKeys(new_username);
-        driver.findElement(By.id("customer.password")).sendKeys(password);
-        driver.findElement(By.id("repeatedPassword")).sendKeys(password);
+        driver.findElement(By.id("customer.password")).sendKeys(TEST_PASSWORD);
+        driver.findElement(By.id("repeatedPassword")).sendKeys(TEST_PASSWORD);
         driver.findElement(By.cssSelector("input[value='Register']")).click();
         wait.until(ExpectedConditions.textToBePresentInElementLocated(
                 By.id("rightPanel"), "Your account was created successfully"));
@@ -290,22 +284,21 @@ public class LoginTest extends BaseTest {
         assertTrue(driver.findElements(By.linkText("Log Out")).isEmpty(), "The customer should not get logged in");
     }
 
-    // Test Case 12 (boundary): verify whether a customer can log in with the shortest password of 1 character
+    // Test Case 12 (boundary): verify that login is not successful when the password is one character shorter than the correct password
     @Test
     @SpiraTestCase(testCaseId = 53484)
-    @DisplayName("Verify that a customer who registered with a 1-character password can log in with it")
-    public void boundary_Login_WithOneCharacterPassword() {
-        // To register a customer with a password of only 1 character
-        String time_stamp = String.valueOf(System.currentTimeMillis());
-        String short_password = "r";
-        String new_username = register_UniqueCustomer("Chandra" + time_stamp,
-                time_stamp.substring(time_stamp.length() - 9), short_password);
+    @DisplayName("Verify that login is not successful when the password is one character shorter than the correct password")
+    public void boundary_Login_WithPasswordOneCharacterShort() {
+        // "Test@123" becomes "Test@12", so the last character is removed
+        String short_password = TEST_PASSWORD.substring(0, TEST_PASSWORD.length() - 1);
+        // One character shorter than the correct password
+        assertEquals(TEST_PASSWORD.length() - 1, short_password.length(), "The password should be one character shorter");
 
-        login(new_username, short_password);
-        wait.until(ExpectedConditions.titleIs("ParaBank | Accounts Overview"));
+        login(unique_username, short_password);
 
-        assertEquals("Accounts Overview", driver.findElement(By.className("title")).getText());
-        assertTrue(driver.findElement(By.linkText("Log Out")).isDisplayed(), "The customer should be logged in");
+        assertEquals("The username and password could not be verified.", get_ErrorMessage());
+        // If an empty list is returned, there is no "Log Out" link, so the customer is not logged in
+        assertTrue(driver.findElements(By.linkText("Log Out")).isEmpty(), "The customer should not get logged in");
     }
 
 }
