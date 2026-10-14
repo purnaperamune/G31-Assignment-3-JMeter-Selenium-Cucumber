@@ -1,18 +1,28 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
-import java.math.BigDecimal;
-import org.openqa.selenium.TimeoutException;
+import com.inflectra.spiratest.addons.junitextension.*;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 // Owner: Member 4 – Bill Pay tests
+@ExtendWith(SpiraExtension.class)
+@SpiraTestConfiguration(
+        url = "https://rmit.spiraservice.net",
+        login = "S4143272",
+        rssToken = "{1699747E-B122-4EC0-9AD2-CDDF91090DE8}",
+        projectId = 1203,
+        releaseId = -1,
+        testSetId = -1
+)
 public class BillPayTest extends BaseTest {
 
     @BeforeEach
@@ -21,6 +31,7 @@ public class BillPayTest extends BaseTest {
         driver.findElement(By.linkText("Bill Pay")).click();
         wait.until(d -> new Select(d.findElement(By.name("fromAccountId"))).getOptions().size() > 0);
     }
+
     private void fillPayeeDetails(String payeeName) {
         driver.findElement(By.name("payee.name")).sendKeys(payeeName);
         driver.findElement(By.name("payee.address.street")).sendKeys("10 Collins Street");
@@ -39,6 +50,7 @@ public class BillPayTest extends BaseTest {
     private void sendPayment() {
         driver.findElement(By.cssSelector("input[value='Send Payment']")).click();
     }
+
     private void goToBillPay() {
         driver.findElement(By.linkText("Bill Pay")).click();
         wait.until(d -> new Select(d.findElement(By.name("fromAccountId"))).getOptions().size() > 0);
@@ -51,6 +63,7 @@ public class BillPayTest extends BaseTest {
                 By.xpath("//a[text()='" + accountId + "']/ancestor::tr/td[2]")).getText();
         return new BigDecimal(balanceText.replace("$", "").replace(",", ""));
     }
+
     private BigDecimal readBalanceFromAccountDetails(String accountId) {
         driver.findElement(By.partialLinkText("Accounts Overview")).click();
         wait.until(ExpectedConditions.elementToBeClickable(By.linkText(accountId))).click();
@@ -60,6 +73,7 @@ public class BillPayTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53399)
     @DisplayName("Bill Pay lists the customer's own account as the funding account")
     public void fundingAccountMatchesCustomersAccount() {
         assertEquals("Bill Payment Service",
@@ -75,7 +89,9 @@ public class BillPayTest extends BaseTest {
         assertNotNull(accountLink, "Funding account should be one of the customer's accounts");
         assertEquals(fundingAccount, accountLink.getText());
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53400)
     @DisplayName("A valid bill payment completes and shows the payee, amount and account")
     public void validBillPaymentCompletes() {
         String fromAccount = new Select(driver.findElement(By.name("fromAccountId")))
@@ -98,7 +114,9 @@ public class BillPayTest extends BaseTest {
                 () -> assertEquals("ParaBank | Bill Payment Complete", driver.getTitle())
         );
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53401)
     @DisplayName("Bill payment is blocked when the account numbers do not match")
     public void mismatchedAccountNumbersShowError() {
         fillPayeeDetails("Water Company");
@@ -112,7 +130,9 @@ public class BillPayTest extends BaseTest {
         assertFalse(driver.findElement(By.id("billpayResult")).isDisplayed(),
                 "Payment should not be completed");
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53402)
     @DisplayName("Submitting an empty bill pay form shows required-field errors")
     public void emptyFormShowsRequiredErrors() {
         sendPayment();
@@ -132,7 +152,25 @@ public class BillPayTest extends BaseTest {
         assertFalse(driver.findElement(By.id("billpayResult")).isDisplayed(),
                 "Payment should not be completed");
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53403)
+    @DisplayName("Bill payment is blocked when the amount is not a number")
+    public void invalidAmountShowsError() {
+        fillPayeeDetails("Internet Provider");
+        fillPaymentDetails("12345", "12345", "abc");
+        sendPayment();
+
+        WebElement amountError = driver.findElement(By.id("validationModel-amount-invalid"));
+
+        assertTrue(amountError.isDisplayed(), "Invalid amount error should be shown");
+        assertEquals("Please enter a valid amount.", amountError.getText());
+        assertFalse(driver.findElement(By.id("billpayResult")).isDisplayed(),
+                "Payment should not be completed");
+    }
+
+    @Test
+    @SpiraTestCase(testCaseId = 53404)
     @DisplayName("A bill payment reduces the account balance and appears in account activity")
     public void billPaymentReducesBalanceAndAppearsInActivity() {
         String fromAccount = new Select(driver.findElement(By.name("fromAccountId")))
@@ -162,21 +200,9 @@ public class BillPayTest extends BaseTest {
                 }
         );
     }
-    @Test
-    @DisplayName("Bill payment is blocked when the amount is not a number")
-    public void invalidAmountShowsError() {
-        fillPayeeDetails("Internet Provider");
-        fillPaymentDetails("12345", "12345", "abc");
-        sendPayment();
 
-        WebElement amountError = driver.findElement(By.id("validationModel-amount-invalid"));
-
-        assertTrue(amountError.isDisplayed(), "Invalid amount error should be shown");
-        assertEquals("Please enter a valid amount.", amountError.getText());
-        assertFalse(driver.findElement(By.id("billpayResult")).isDisplayed(),
-                "Payment should not be completed");
-    }
     @Test
+    @SpiraTestCase(testCaseId = 53405)
     @DisplayName("A negative bill payment amount should be rejected and must not increase the balance")
     public void negativeAmountShouldBeRejected() {
         String fromAccount = new Select(driver.findElement(By.name("fromAccountId")))
@@ -198,6 +224,53 @@ public class BillPayTest extends BaseTest {
                         "Defect: ParaBank accepted a bill payment of -$50.00"),
                 () -> assertTrue(balanceAfter.compareTo(balanceBefore) <= 0,
                         "Defect: balance increased from " + balanceBefore + " to " + balanceAfter)
+        );
+    }
+    @Test
+    @SpiraTestCase(testCaseId = 53663)
+    @DisplayName("A bill payment larger than the balance should be rejected and must not overdraw the account")
+    public void paymentExceedingBalanceShouldBeRejected() {
+        String fromAccount = new Select(driver.findElement(By.name("fromAccountId")))
+                .getFirstSelectedOption().getText();
+        BigDecimal balanceBefore = readBalance(fromAccount);
+        BigDecimal amount = balanceBefore.add(new BigDecimal("1000"));
+
+        goToBillPay();
+        fillPayeeDetails("Electricity Company");
+        fillPaymentDetails("12345", "12345", amount.toPlainString());
+        sendPayment();
+
+        wait.until(d -> d.findElement(By.id("billpayResult")).isDisplayed()
+                || d.findElement(By.id("billpayError")).isDisplayed());
+        boolean paymentAccepted = driver.findElement(By.id("billpayResult")).isDisplayed();
+        BigDecimal balanceAfter = readBalanceFromAccountDetails(fromAccount);
+
+        assertAll("Payment exceeding balance",
+                () -> assertFalse(paymentAccepted,
+                        "Defect: ParaBank accepted a bill payment of $" + amount
+                                + " which exceeds the balance of $" + balanceBefore),
+                () -> assertTrue(balanceAfter.compareTo(BigDecimal.ZERO) >= 0,
+                        "Defect: account was overdrawn to " + balanceAfter)
+        );
+    }
+
+    @Test
+    @SpiraTestCase(testCaseId = 53665)
+    @DisplayName("Bill payment is blocked when the account number is not a number")
+    public void nonNumericAccountNumberShowsError() {
+        fillPayeeDetails("Gas Company");
+        fillPaymentDetails("abc", "abc", "50");
+        sendPayment();
+
+        WebElement accountError = driver.findElement(By.id("validationModel-account-invalid"));
+        WebElement verifyError = driver.findElement(By.id("validationModel-verifyAccount-invalid"));
+
+        assertAll("Non-numeric account number",
+                () -> assertTrue(accountError.isDisplayed(), "Account # error should be shown"),
+                () -> assertEquals("Please enter a valid number.", accountError.getText()),
+                () -> assertTrue(verifyError.isDisplayed(), "Verify Account # error should be shown"),
+                () -> assertFalse(driver.findElement(By.id("billpayResult")).isDisplayed(),
+                        "Payment should not be completed")
         );
     }
 }
