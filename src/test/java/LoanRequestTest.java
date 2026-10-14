@@ -119,4 +119,21 @@ public class LoanRequestTest extends BaseTest {
                         "Approved section should be hidden for a denied loan")
         );
     }
+
+    @Test
+    @DisplayName("LR-04 Submitting the loan form with empty fields does not approve a loan")
+    public void blankLoanRequestIsNotApproved() {
+        driver.findElement(By.cssSelector("input[value='Apply Now']")).click();
+        waitForAnyOutcome();
+
+        WebElement error = driver.findElement(By.id("requestLoanError"));
+
+        assertAll("Blank loan request",
+                () -> assertFalse(driver.findElement(By.id("loanRequestApproved")).isDisplayed(),
+                        "A loan must not be approved when no amount is entered"),
+                // Once you have seen the real ParaBank message, replace this with assertEquals on that text.
+                () -> assertTrue(error.isDisplayed(), "An error message should be shown"),
+                () -> assertFalse(error.getText().isBlank(), "The error message should not be empty")
+        );
+    }
 }
