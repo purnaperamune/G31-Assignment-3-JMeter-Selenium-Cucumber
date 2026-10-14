@@ -73,4 +73,50 @@ public class LoanRequestTest extends BaseTest {
                 () -> assertFalse(fromAccounts.isEmpty(), "At least one funding account should be listed")
         );
     }
+
+    @Test
+    @DisplayName("LR-02 A small loan with an affordable down payment is approved")
+    public void smallLoanIsApproved() {
+        applyForLoan("100", "100");
+        String status = waitForLoanStatus();
+
+        if (status.equalsIgnoreCase("Denied")) {
+            String reason = driver.findElement(
+                    By.cssSelector("#loanRequestDenied .error")
+            ).getText();
+
+            System.out.println("Loan status: " + status);
+            System.out.println("Loan denial reason: " + reason);
+        }
+
+        String heading = driver.findElement(By.cssSelector("#requestLoanResult .title")).getText();
+        String message = driver.findElement(By.xpath("//div[@id='loanRequestApproved']/p[1]")).getText();
+        String newAccountId = driver.findElement(By.id("newAccountId")).getText();
+
+        assertAll("Approved loan result",
+                () -> assertEquals("Loan Request Processed", heading),
+                () -> assertEquals("Approved", status),
+                () -> assertEquals(APPROVED_MESSAGE, message),
+                () -> assertTrue(newAccountId.matches("\\d+"), "New loan account number should be numeric"),
+                () -> assertFalse(driver.findElement(By.id("loanRequestDenied")).isDisplayed(),
+                        "Denied section should be hidden for an approved loan")
+        );
+    }
+
+    @Test
+    @DisplayName("LR-03 A loan is denied when the down payment exceeds the available balance")
+    public void loanDeniedWhenDownPaymentTooHigh() {
+        applyForLoan("1000", "100000");
+        String status = waitForLoanStatus();
+
+        WebElement deniedMessage = driver.findElement(By.cssSelector("#loanRequestDenied .error"));
+
+        assertAll("Denied loan result",
+                () -> assertEquals("Denied", status),
+                () -> assertTrue(deniedMessage.isDisplayed(), "A denial reason should be shown"),
+                () -> assertFalse(deniedMessage.getText().isBlank(), "The denial reason should not be empty"),
+                () -> assertFalse(driver.findElement(By.id("loanRequestApproved")).isDisplayed(),
+                        "Approved section should be hidden for a denied loan")
+        );
+    }
 }
