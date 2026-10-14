@@ -1,16 +1,28 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import com.inflectra.spiratest.addons.junitextension.*;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 // Owner: Member 4 – Open New Account tests
+@ExtendWith(SpiraExtension.class)
+@SpiraTestConfiguration(
+        url = "https://rmit.spiraservice.net",
+        login = "S4143272",
+        rssToken = "{1699747E-B122-4EC0-9AD2-CDDF91090DE8}",
+        projectId = 1203,
+        releaseId = -1,
+        testSetId = -1
+)
 public class OpenNewAccountTest extends BaseTest {
 
     @BeforeEach
@@ -19,6 +31,7 @@ public class OpenNewAccountTest extends BaseTest {
         driver.findElement(By.linkText("Open New Account")).click();
         waitForFundingAccounts();
     }
+
     private BigDecimal readBalanceFromOverview(String accountId) {
         driver.findElement(By.partialLinkText("Accounts Overview")).click();
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.linkText(accountId)));
@@ -33,9 +46,11 @@ public class OpenNewAccountTest extends BaseTest {
         String balanceText = driver.findElement(By.id("balance")).getText();
         return new BigDecimal(balanceText.replace("$", "").replace(",", ""));
     }
+
     private void waitForFundingAccounts() {
         wait.until(d -> new Select(d.findElement(By.id("fromAccountId"))).getOptions().size() > 0);
     }
+
     private String openAccount(String accountType) {
         new Select(driver.findElement(By.id("type"))).selectByVisibleText(accountType);
         driver.findElement(By.cssSelector("input[type='button'][value='Open New Account']")).click();
@@ -43,7 +58,9 @@ public class OpenNewAccountTest extends BaseTest {
         wait.until(d -> !d.findElement(By.id("newAccountId")).getText().isBlank());
         return driver.findElement(By.id("newAccountId")).getText();
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53392)
     @DisplayName("Open New Account page loads with account types and a funding account")
     public void pageLoadsWithDropdownOptions() {
         assertEquals("ParaBank | Open Account", driver.getTitle());
@@ -57,7 +74,9 @@ public class OpenNewAccountTest extends BaseTest {
                 .findElements(By.tagName("option"));
         assertFalse(fundingAccounts.isEmpty(), "At least one funding account should be listed");
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53393)
     @DisplayName("Opening a CHECKING account shows a success message and a new account number")
     public void openCheckingAccount() {
         String newAccountId = openAccount("CHECKING");
@@ -69,7 +88,9 @@ public class OpenNewAccountTest extends BaseTest {
                 () -> assertTrue(newAccountId.matches("\\d+"), "Account number should be numeric")
         );
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53394)
     @DisplayName("Opening a SAVINGS account shows the confirmation and hides the form")
     public void openSavingsAccount() {
         String newAccountId = openAccount("SAVINGS");
@@ -79,7 +100,9 @@ public class OpenNewAccountTest extends BaseTest {
         assertFalse(driver.findElement(By.id("openAccountForm")).isDisplayed(), "Form should be hidden after opening");
         assertNotNull(newAccountId);
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53395)
     @DisplayName("A newly opened account appears in Accounts Overview")
     public void newAccountAppearsInAccountsOverview() {
         String newAccountId = openAccount("SAVINGS");
@@ -90,7 +113,9 @@ public class OpenNewAccountTest extends BaseTest {
         assertNotNull(accountLink);
         assertEquals(newAccountId, accountLink.getText());
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53396)
     @DisplayName("The new account number links to that account's details page")
     public void newAccountLinkOpensAccountDetails() {
         String newAccountId = openAccount("CHECKING");
@@ -99,7 +124,9 @@ public class OpenNewAccountTest extends BaseTest {
         wait.until(ExpectedConditions.urlContains("activity.htm?id=" + newAccountId));
         assertTrue(driver.getCurrentUrl().contains("id=" + newAccountId));
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53398)
     @DisplayName("Opening an account moves the opening deposit from the funding account without changing the total")
     public void openingAccountTransfersDepositFromFundingAccount() {
         String fundingAccount = new Select(driver.findElement(By.id("fromAccountId")))
@@ -121,7 +148,9 @@ public class OpenNewAccountTest extends BaseTest {
                                 + fundingBefore + ", deposit: " + newAccountBalance + ", after: " + fundingAfter + ")")
         );
     }
+
     @Test
+    @SpiraTestCase(testCaseId = 53397)
     @DisplayName("A logged-out user cannot access the Open New Account page")
     public void loggedOutUserCannotOpenAccount() {
         driver.findElement(By.linkText("Log Out")).click();

@@ -14,6 +14,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>project-local</id>
+            <url>file://${project.basedir}/lib-repo</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
@@ -24,6 +31,12 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>5.14.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.inflectra</groupId>
+            <artifactId>spira-junit5-extension</artifactId>
+            <version>1.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
