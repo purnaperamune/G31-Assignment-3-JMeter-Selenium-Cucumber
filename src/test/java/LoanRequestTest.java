@@ -136,4 +136,20 @@ public class LoanRequestTest extends BaseTest {
                 () -> assertFalse(error.getText().isBlank(), "The error message should not be empty")
         );
     }
+
+    @Test
+    @DisplayName("LR-05 A non-numeric loan amount is not approved")
+    public void nonNumericAmountIsNotApproved() {
+        applyForLoan("abc", "10");
+        waitForAnyOutcome();
+
+        WebElement error = driver.findElement(By.id("requestLoanError"));
+
+        assertAll("Non-numeric amount",
+                () -> assertFalse(driver.findElement(By.id("loanRequestApproved")).isDisplayed(),
+                        "A loan must not be approved for a non-numeric amount"),
+                () -> assertTrue(error.isDisplayed(), "An error message should be shown"),
+                () -> assertFalse(error.getText().isBlank(), "The error message should not be empty")
+        );
+    }
 }
