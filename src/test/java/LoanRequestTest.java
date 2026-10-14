@@ -152,4 +152,19 @@ public class LoanRequestTest extends BaseTest {
                 () -> assertFalse(error.getText().isBlank(), "The error message should not be empty")
         );
     }
+
+    @Test
+    @DisplayName("LR-06 An approved loan account appears in Accounts Overview")
+    public void approvedLoanAppearsInAccountsOverview() {
+        applyForLoan("100", "10");
+        assertEquals("Approved", waitForLoanStatus(), "Loan must be approved before checking the overview");
+        String newAccountId = driver.findElement(By.id("newAccountId")).getText();
+
+        driver.findElement(By.partialLinkText("Accounts Overview")).click();
+        WebElement accountLink = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.linkText(newAccountId)));
+
+        assertNotNull(accountLink);
+        assertEquals(newAccountId, accountLink.getText());
+    }
 }
