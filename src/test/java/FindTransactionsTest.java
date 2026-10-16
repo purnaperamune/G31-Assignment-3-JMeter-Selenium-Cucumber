@@ -136,4 +136,15 @@ public class FindTransactionsTest extends BaseTest {
                         "Result should be dated " + transactionDate)
         );
     }
+
+    @Test
+    @DisplayName("FT-04 Find transactions by a date range")
+    public void findTransactionsByDateRange() {
+        type(By.id("fromDate"), transactionDate);
+        type(By.id("toDate"), transactionDate);
+        driver.findElement(By.id("findByDateRange")).click();
+        waitForResults();
+
+        assertFalse(resultRows().isEmpty(), "A range containing the transaction date should return results");
+    }
 }
