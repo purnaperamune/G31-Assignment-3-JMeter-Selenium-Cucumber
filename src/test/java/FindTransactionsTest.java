@@ -177,4 +177,21 @@ public class FindTransactionsTest extends BaseTest {
                 () -> assertTrue(resultRows().isEmpty(), "No results should be listed")
         );
     }
+
+    @Test
+    @DisplayName("FT-07 A non-existent transaction ID returns no results")
+    public void nonExistentTransactionIdReturnsNothing() {
+        type(By.id("transactionId"), "999999999");
+        driver.findElement(By.id("findById")).click();
+        waitForAnyOutcome();
+
+        boolean resultShown = driver.findElement(By.id("resultContainer")).isDisplayed();
+        boolean errorShown = driver.findElement(By.id("errorContainer")).isDisplayed();
+
+        assertAll("Unknown transaction ID",
+                () -> assertTrue(resultShown || errorShown, "The page should show a result or an error"),
+                () -> assertTrue(resultRows().isEmpty(), "No transaction should be listed for an unknown ID")
+        );
+    }
+
 }
