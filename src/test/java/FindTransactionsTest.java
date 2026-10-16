@@ -122,4 +122,18 @@ public class FindTransactionsTest extends BaseTest {
                 () -> assertTrue(rowText.contains(NEW_ACCOUNT_AMOUNT), "Row should show the amount")
         );
     }
+
+    @Test
+    @DisplayName("FT-03 Find transactions by a single date")
+    public void findTransactionsByDate() {
+        type(By.id("transactionDate"), transactionDate);
+        driver.findElement(By.id("findByDate")).click();
+        waitForResults();
+
+        assertAll("Search by date",
+                () -> assertFalse(resultRows().isEmpty(), "At least one transaction should be found"),
+                () -> assertTrue(resultRows().get(0).getText().contains(transactionDate),
+                        "Result should be dated " + transactionDate)
+        );
+    }
 }
