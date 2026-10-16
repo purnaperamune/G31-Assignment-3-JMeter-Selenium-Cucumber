@@ -209,4 +209,21 @@ public class FindTransactionsTest extends BaseTest {
                 () -> assertTrue(resultRows().isEmpty(), "No results should be listed")
         );
     }
+
+    @Test
+    @DisplayName("FT-09 A non-numeric transaction ID shows an error and no results")
+    public void invalidTransactionIdShowsError() {
+        type(By.id("transactionId"), "abc");
+        driver.findElement(By.id("findById")).click();
+        waitForAnyOutcome();
+
+        WebElement error = driver.findElement(By.id("transactionIdError"));
+
+        assertAll("Invalid transaction ID",
+                () -> assertTrue(error.isDisplayed(), "A transaction ID error should be shown"),
+                () -> assertEquals("Invalid transaction ID", error.getText()),
+                () -> assertTrue(resultRows().isEmpty(), "No results should be listed")
+        );
+    }
+
 }
