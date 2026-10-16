@@ -91,7 +91,6 @@ public class FindTransactionsTest extends BaseTest {
 
     // ---------- Tests ----------
 
-    // Spira: TC:XXX
     @Test
     @DisplayName("FT-01 Find Transactions page loads with all four search options")
     public void pageLoadsWithSearchForms() {
@@ -105,6 +104,22 @@ public class FindTransactionsTest extends BaseTest {
                 () -> assertTrue(driver.findElement(By.id("amount")).isDisplayed(), "Amount field"),
                 () -> assertFalse(new Select(driver.findElement(By.id("accountId"))).getOptions().isEmpty(),
                         "At least one account should be listed")
+        );
+    }
+
+    @Test
+    @DisplayName("FT-02 Find a transaction by its ID")
+    public void findTransactionById() {
+        type(By.id("transactionId"), transactionId);
+        driver.findElement(By.id("findById")).click();
+        waitForResults();
+
+        String rowText = resultRows().get(0).getText();
+
+        assertAll("Search by ID",
+                () -> assertEquals(1, resultRows().size(), "Exactly one transaction should match the ID"),
+                () -> assertTrue(rowText.contains(transactionDate), "Row should show the transaction date"),
+                () -> assertTrue(rowText.contains(NEW_ACCOUNT_AMOUNT), "Row should show the amount")
         );
     }
 }
