@@ -161,4 +161,20 @@ public class FindTransactionsTest extends BaseTest {
                         "Result should show the amount " + NEW_ACCOUNT_AMOUNT)
         );
     }
+
+    @Test
+    @DisplayName("FT-06 An invalid date format shows an error and no results")
+    public void invalidDateFormatShowsError() {
+        type(By.id("transactionDate"), "not-a-date");
+        driver.findElement(By.id("findByDate")).click();
+        waitForAnyOutcome();
+
+        WebElement error = driver.findElement(By.id("transactionDateError"));
+
+        assertAll("Invalid date",
+                () -> assertTrue(error.isDisplayed(), "A date error should be shown"),
+                () -> assertEquals("Invalid date format", error.getText()),
+                () -> assertTrue(resultRows().isEmpty(), "No results should be listed")
+        );
+    }
 }
