@@ -235,7 +235,7 @@ public class RegistrationTest extends BaseTest {
 
     // Test Case 8 (boundary): verify whether a customer can register with a short password of 1 character
     @Test
-    @SpiraTestCase(testCaseId = 53487)
+    @SpiraTestCase(testCaseId = 53486)
     @DisplayName("Verify that a customer can register with a password of only 1 character")
     public void boundary_RegisterCustomer_WithShortestPassword() {
         String unique_username = "user" + System.currentTimeMillis();
