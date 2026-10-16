@@ -214,7 +214,10 @@ public class BillPayTest extends BaseTest {
         fillPaymentDetails("12345", "12345", "-50");
         sendPayment();
 
+        // To wait until ParaBank responds: the success section, the general error section,
+        // or the "invalid amount" error message
         wait.until(d -> d.findElement(By.id("billpayResult")).isDisplayed()
+                || d.findElement(By.id("billpayError")).isDisplayed()
                 || d.findElement(By.id("validationModel-amount-invalid")).isDisplayed());
         boolean paymentAccepted = driver.findElement(By.id("billpayResult")).isDisplayed();
         BigDecimal balanceAfter = readBalanceFromAccountDetails(fromAccount);
