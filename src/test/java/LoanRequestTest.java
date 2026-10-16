@@ -1,3 +1,5 @@
+import com.inflectra.spiratest.addons.junitextension.SpiraTestCase;
+import com.inflectra.spiratest.addons.junitextension.SpiraTestConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,16 @@ import static org.junit.jupiter.api.Assertions.*;
  * Each test registers a fresh user in @BeforeEach, so no test depends on data left over
  * from earlier runs (ParaBank's database can be reset at any time).
  */
+
+@SpiraTestConfiguration(
+        url = "https://rmit.spiraservice.net",
+        login = "S4143272",
+        rssToken = "{4B9371F7-82E4-4134-980E-8FC6BF544028}",
+        projectId = 1203,
+        releaseId = 2977,
+        testSetId = 6878
+)
+
 public class LoanRequestTest extends BaseTest {
 
     private static final String APPROVED_MESSAGE = "Congratulations, your loan has been approved.";
@@ -58,6 +70,7 @@ public class LoanRequestTest extends BaseTest {
     // ---------- Tests ----------
 
     @Test
+    @SpiraTestCase(testCaseId = 53765)
     @DisplayName("LR-01 Request Loan page loads with amount, down payment and a funding account")
     public void pageLoadsWithLoanForm() {
         List<WebElement> fromAccounts = driver.findElement(By.id("fromAccountId"))
@@ -75,6 +88,7 @@ public class LoanRequestTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53766)
     @DisplayName("LR-02 A small loan with an affordable down payment is approved")
     public void smallLoanIsApproved() {
         applyForLoan("100", "100");
@@ -104,6 +118,7 @@ public class LoanRequestTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53767)
     @DisplayName("LR-03 A loan is denied when the down payment exceeds the available balance")
     public void loanDeniedWhenDownPaymentTooHigh() {
         applyForLoan("1000", "100000");
@@ -121,6 +136,7 @@ public class LoanRequestTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53768)
     @DisplayName("LR-04 Submitting the loan form with empty fields does not approve a loan")
     public void blankLoanRequestIsNotApproved() {
         driver.findElement(By.cssSelector("input[value='Apply Now']")).click();
@@ -138,6 +154,7 @@ public class LoanRequestTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53769)
     @DisplayName("LR-05 A non-numeric loan amount is not approved")
     public void nonNumericAmountIsNotApproved() {
         applyForLoan("abc", "10");
@@ -154,6 +171,7 @@ public class LoanRequestTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53770)
     @DisplayName("LR-06 An approved loan account appears in Accounts Overview")
     public void approvedLoanAppearsInAccountsOverview() {
         applyForLoan("100", "10");

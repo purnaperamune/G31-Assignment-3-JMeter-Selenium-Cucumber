@@ -1,3 +1,5 @@
+import com.inflectra.spiratest.addons.junitextension.SpiraTestCase;
+import com.inflectra.spiratest.addons.junitextension.SpiraTestConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +23,16 @@ import static org.junit.jupiter.api.Assertions.*;
  * reads that transaction's ID and date from the Account Activity table. Tests therefore
  * never depend on data left over from earlier runs.
  */
+
+@SpiraTestConfiguration(
+        url = "https://rmit.spiraservice.net",
+        login = "S4143272",
+        rssToken = "{4B9371F7-82E4-4134-980E-8FC6BF544028}",
+        projectId = 1203,
+        releaseId = 2977,
+        testSetId = 6879
+)
+
 public class FindTransactionsTest extends BaseTest {
 
     private static final String NEW_ACCOUNT_AMOUNT = "100.00"; // initial funding of the new account
@@ -92,6 +104,7 @@ public class FindTransactionsTest extends BaseTest {
     // ---------- Tests ----------
 
     @Test
+    @SpiraTestCase(testCaseId = 53771)
     @DisplayName("FT-01 Find Transactions page loads with all four search options")
     public void pageLoadsWithSearchForms() {
         assertAll("Find Transactions page",
@@ -108,6 +121,7 @@ public class FindTransactionsTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53772)
     @DisplayName("FT-02 Find a transaction by its ID")
     public void findTransactionById() {
         type(By.id("transactionId"), transactionId);
@@ -124,6 +138,7 @@ public class FindTransactionsTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53773)
     @DisplayName("FT-03 Find transactions by a single date")
     public void findTransactionsByDate() {
         type(By.id("transactionDate"), transactionDate);
@@ -138,6 +153,7 @@ public class FindTransactionsTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53774)
     @DisplayName("FT-04 Find transactions by a date range")
     public void findTransactionsByDateRange() {
         type(By.id("fromDate"), transactionDate);
@@ -149,6 +165,7 @@ public class FindTransactionsTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53775)
     @DisplayName("FT-05 Find transactions by amount")
     public void findTransactionsByAmount() {
         type(By.id("amount"), "100");
@@ -163,6 +180,7 @@ public class FindTransactionsTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53776)
     @DisplayName("FT-06 An invalid date format shows an error and no results")
     public void invalidDateFormatShowsError() {
         type(By.id("transactionDate"), "not-a-date");
@@ -179,6 +197,7 @@ public class FindTransactionsTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53777)
     @DisplayName("FT-07 A non-existent transaction ID returns no results")
     public void nonExistentTransactionIdReturnsNothing() {
         type(By.id("transactionId"), "999999999");
@@ -195,6 +214,7 @@ public class FindTransactionsTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53778)
     @DisplayName("FT-08 A non-numeric amount shows an error and no results")
     public void invalidAmountShowsError() {
         type(By.id("amount"), "abc");
@@ -211,6 +231,7 @@ public class FindTransactionsTest extends BaseTest {
     }
 
     @Test
+    @SpiraTestCase(testCaseId = 53779)
     @DisplayName("FT-09 A non-numeric transaction ID shows an error and no results")
     public void invalidTransactionIdShowsError() {
         type(By.id("transactionId"), "abc");
