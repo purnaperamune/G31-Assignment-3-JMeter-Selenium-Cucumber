@@ -91,7 +91,6 @@ public class FindTransactionsTest extends BaseTest {
 
     // ---------- Tests ----------
 
-    // Spira: TC:XXX
     @Test
     @DisplayName("FT-01 Find Transactions page loads with all four search options")
     public void pageLoadsWithSearchForms() {
@@ -107,4 +106,92 @@ public class FindTransactionsTest extends BaseTest {
                         "At least one account should be listed")
         );
     }
+
+    @Test
+    @DisplayName("FT-02 Find a transaction by its ID")
+    public void findTransactionById() {
+        type(By.id("transactionId"), transactionId);
+        driver.findElement(By.id("findById")).click();
+        waitForResults();
+
+        String rowText = resultRows().get(0).getText();
+
+        assertAll("Search by ID",
+                () -> assertEquals(1, resultRows().size(), "Exactly one transaction should match the ID"),
+                () -> assertTrue(rowText.contains(transactionDate), "Row should show the transaction date"),
+                () -> assertTrue(rowText.contains(NEW_ACCOUNT_AMOUNT), "Row should show the amount")
+        );
+    }
+
+    @Test
+    @DisplayName("FT-03 Find transactions by a single date")
+    public void findTransactionsByDate() {
+        type(By.id("transactionDate"), transactionDate);
+        driver.findElement(By.id("findByDate")).click();
+        waitForResults();
+
+        assertAll("Search by date",
+                () -> assertFalse(resultRows().isEmpty(), "At least one transaction should be found"),
+                () -> assertTrue(resultRows().get(0).getText().contains(transactionDate),
+                        "Result should be dated " + transactionDate)
+        );
+    }
+
+    @Test
+    @DisplayName("FT-04 Find transactions by a date range")
+    public void findTransactionsByDateRange() {
+        type(By.id("fromDate"), transactionDate);
+        type(By.id("toDate"), transactionDate);
+        driver.findElement(By.id("findByDateRange")).click();
+        waitForResults();
+
+        assertFalse(resultRows().isEmpty(), "A range containing the transaction date should return results");
+    }
+
+    @Test
+    @DisplayName("FT-05 Find transactions by amount")
+    public void findTransactionsByAmount() {
+        type(By.id("amount"), "100");
+        driver.findElement(By.id("findByAmount")).click();
+        waitForResults();
+
+        assertAll("Search by amount",
+                () -> assertFalse(resultRows().isEmpty(), "At least one transaction should match the amount"),
+                () -> assertTrue(resultRows().get(0).getText().contains(NEW_ACCOUNT_AMOUNT),
+                        "Result should show the amount " + NEW_ACCOUNT_AMOUNT)
+        );
+    }
+
+    @Test
+    @DisplayName("FT-06 An invalid date format shows an error and no results")
+    public void invalidDateFormatShowsError() {
+        type(By.id("transactionDate"), "not-a-date");
+        driver.findElement(By.id("findByDate")).click();
+        waitForAnyOutcome();
+
+        WebElement error = driver.findElement(By.id("transactionDateError"));
+
+        assertAll("Invalid date",
+                () -> assertTrue(error.isDisplayed(), "A date error should be shown"),
+                () -> assertEquals("Invalid date format", error.getText()),
+                () -> assertTrue(resultRows().isEmpty(), "No results should be listed")
+        );
+    }
+
+    @Test
+    @DisplayName("FT-07 A non-existent transaction ID returns no results")
+    public void nonExistentTransactionIdReturnsNothing() {
+        type(By.id("transactionId"), "999999999");
+        driver.findElement(By.id("findById")).click();
+        waitForAnyOutcome();
+
+        boolean resultShown = driver.findElement(By.id("resultContainer")).isDisplayed();
+        boolean errorShown = driver.findElement(By.id("errorContainer")).isDisplayed();
+
+        assertAll("Unknown transaction ID",
+                () -> assertTrue(resultShown || errorShown, "The page should show a result or an error"),
+                () -> assertTrue(resultRows().isEmpty(), "No transaction should be listed for an unknown ID")
+        );
+    }
+
 }
