@@ -194,4 +194,19 @@ public class FindTransactionsTest extends BaseTest {
         );
     }
 
+    @Test
+    @DisplayName("FT-08 A non-numeric amount shows an error and no results")
+    public void invalidAmountShowsError() {
+        type(By.id("amount"), "abc");
+        driver.findElement(By.id("findByAmount")).click();
+        waitForAnyOutcome();
+
+        WebElement error = driver.findElement(By.id("amountError"));
+
+        assertAll("Invalid amount",
+                () -> assertTrue(error.isDisplayed(), "An amount error should be shown"),
+                () -> assertEquals("Invalid amount", error.getText()),
+                () -> assertTrue(resultRows().isEmpty(), "No results should be listed")
+        );
+    }
 }
