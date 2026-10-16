@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpiraTestConfiguration(
         url = "https://rmit.spiraservice.net",
         login = "S4143272",
-        rssToken = "{1699747E-B122-4EC0-9AD2-CDDF91090DE8}",
+        rssToken = "{4B9371F7-82E4-4134-980E-8FC6BF544028}",
         projectId = 1203,
         releaseId = -1,
         testSetId = -1
