@@ -19,9 +19,9 @@ import com.inflectra.spiratest.addons.junitextension.SpiraTestConfiguration;
 
 @SpiraTestConfiguration (
 //following are REQUIRED
-        url = "https://rmit.spiraservice.net/",
+        url = "https://rmit.spiraservice.net",
         login = "S4143272",
-        rssToken = "{F88666FD-CCD6-479B-B1D6-858DFF329B23}",
+        rssToken = "{4B9371F7-82E4-4134-980E-8FC6BF544028}",
         projectId = 1203,
 //following are OPTIONAL
         releaseId = -1,

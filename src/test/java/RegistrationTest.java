@@ -12,16 +12,15 @@ import static org.junit.jupiter.api.Assertions.*;
 // Owner: Member 3 – User Registration tests
 // Requirement: REQ-01 User Registration
 // Test cases: TC-REG-01 to TC-REG-08
-//
 
 import com.inflectra.spiratest.addons.junitextension.SpiraTestCase;
 import com.inflectra.spiratest.addons.junitextension.SpiraTestConfiguration;
 
 @SpiraTestConfiguration (
 //following are REQUIRED
-        url = "https://rmit.spiraservice.net/",
+        url = "https://rmit.spiraservice.net",
         login = "S4143272",
-        rssToken = "{F88666FD-CCD6-479B-B1D6-858DFF329B23}",
+        rssToken = "{4B9371F7-82E4-4134-980E-8FC6BF544028}",
         projectId = 1203,
 //following are OPTIONAL
         releaseId = -1,
@@ -236,7 +235,7 @@ public class RegistrationTest extends BaseTest {
 
     // Test Case 8 (boundary): verify whether a customer can register with a short password of 1 character
     @Test
-    @SpiraTestCase(testCaseId = 53486)
+    @SpiraTestCase(testCaseId = 53487)
     @DisplayName("Verify that a customer can register with a password of only 1 character")
     public void boundary_RegisterCustomer_WithShortestPassword() {
         String unique_username = "user" + System.currentTimeMillis();
