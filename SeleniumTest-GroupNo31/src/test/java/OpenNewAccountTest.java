@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
         rssToken = "{4B9371F7-82E4-4134-980E-8FC6BF544028}",
         projectId = 1203,
         releaseId = -1,
-        testSetId = -1
+        testSetId = 6924
 )
 
 // This class extends BaseTest
