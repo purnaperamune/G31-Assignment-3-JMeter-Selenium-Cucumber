@@ -23,7 +23,7 @@ import com.inflectra.spiratest.addons.junitextension.SpiraTestConfiguration;
         rssToken = "{4B9371F7-82E4-4134-980E-8FC6BF544028}",
         projectId = 1203,
 //following are OPTIONAL
-        releaseId = -1,
+        releaseId = 2977,
         testSetId = 6864
 )
 
