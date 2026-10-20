@@ -25,7 +25,7 @@ import com.inflectra.spiratest.addons.junitextension.SpiraTestConfiguration;
         projectId = 1203,
 //following are OPTIONAL
         releaseId = -1,
-        testSetId = -1
+        testSetId = 6865
 )
 
 // This class extends BaseTest
