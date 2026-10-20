@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
         login = "S4143272",
         rssToken = "{4B9371F7-82E4-4134-980E-8FC6BF544028}",
         projectId = 1203,
-        releaseId = -1,
+        releaseId = 2977,
         testSetId = 6924
 )
 
